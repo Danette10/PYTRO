@@ -1,4 +1,3 @@
-<im
 # PYTRO
 
 # ⚠️ DISCLAIMER ⚠️
