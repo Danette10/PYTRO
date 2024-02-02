@@ -1,5 +1,9 @@
 # PYTRO
 
+<p align="center">
+  <img src="logo.png" alt="PYTRO logo"/>
+</p>
+
 # ⚠️ DISCLAIMER ⚠️
 This project is developed for educational purposes only. The aim is to understand and demonstrate the security risks associated with RAT (Remote Access Trojan) software and to encourage the development of effective countermeasures. The author(s) of this project do not endorse any malicious use of the materials provided.
 
