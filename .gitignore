@@ -1,6 +1,3 @@
 config.json
-bot/node_modules
-/.idea/.gitignore
-/.idea/modules.xml
-/.idea/PYTRO.iml
-/.idea/vcs.xml
+node_modules
+/.idea
