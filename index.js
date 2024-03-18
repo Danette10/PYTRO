@@ -1,5 +1,6 @@
 import {Client, EmbedBuilder, GatewayIntentBits} from 'discord.js';
 import config from './config.json' assert {type: 'json'};
+import axios from "axios";
 import {commands} from './commands.js';
 
 const { TOKEN, API_BASE_URL } = config;
