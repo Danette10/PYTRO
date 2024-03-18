@@ -1,12 +1,12 @@
 import {REST, Routes} from 'discord.js';
-import config from '../config.json' assert {type: 'json'};
+import config from './config.json' assert {type: 'json'};
 
 const { TOKEN, CLIENT_ID } = config;
 
-const commands = [
+export const commands = [
     {
-        name: 'ping',
-        description: 'Replies with Pong!',
+        name: 'help',
+        description: 'Replies with a help message.',
     },
 ];
 
