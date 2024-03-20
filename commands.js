@@ -28,6 +28,10 @@ export const commands = [
         name: 'stop',
         description: 'Stop the bot.',
     },
+    {
+        name: 'listallscreenshots',
+        description: 'List all screenshots.',
+    },
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
