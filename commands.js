@@ -23,6 +23,24 @@ export const commands = [
     {
         name: 'clients',
         description: 'Lists all clients.',
+        options: [
+            {
+                name: 'status',
+                description: 'Filter by status.',
+                type: 3,
+                required: false,
+                choices: [
+                    {
+                        name: 'Online',
+                        value: 'online',
+                    },
+                    {
+                        name: 'Offline',
+                        value: 'offline',
+                    },
+                ],
+            },
+        ],
     },
     {
         name: 'stop',
