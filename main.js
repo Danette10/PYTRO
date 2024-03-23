@@ -106,13 +106,13 @@ const handleListAllScreenshotsCommand = async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
     axios.get(`${API_BASE_URL}/screenshot`)
         .then(response => {
-            const { screenshots } = response.data;
-            if (!screenshots || !Array.isArray(screenshots) || screenshots.length === 0) {
+            const screenshots = response.data.screenshots;
+            if (!screenshots || Object.keys(screenshots).length === 0) {
                 interaction.editReply("No screenshots available.");
                 return;
             }
 
-            const uniqueIps = [...new Set(screenshots.map(s => s.split('/')[1]))];
+            const uniqueIps = Object.keys(screenshots);
             const buttons = uniqueIps.slice(0, 5).map(ip =>
                 new ButtonBuilder().setCustomId(`ip_${ip}`).setLabel(ip).setStyle(1));
 
