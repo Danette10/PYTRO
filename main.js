@@ -177,7 +177,7 @@ client.on('interactionCreate', async interaction => {
                 console.error("Error retrieving screenshots for IP", error);
                 interaction.update({ content: "Error retrieving screenshots for this IP.", components: [] });
             });
-    }else if (interaction.isSelectMenu()) {
+    }else if (interaction.isStringSelectMenu()) {
         if (interaction.customId === 'select_screenshot') {
             const screenshotIdentifier = interaction.values[0].substring(11);
             const imageUrl = `${API_BASE_URL}/screenshot/${screenshotIdentifier}`;
