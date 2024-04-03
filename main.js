@@ -75,7 +75,12 @@ const handleClientsCommand = async (interaction) => {
             if (onlineClients.length > 0) {
                 embeds.push(new EmbedBuilder()
                     .setTitle('Clients ONLINE')
-                    .setDescription(onlineClients.map(client => `**${client.name || 'Unnamed client'}**\nIP: ${client.ip}`).join('\n\n'))
+                    .setDescription(onlineClients.map(client =>
+                        `**${client.name || 'Unnamed client'}**\n
+                        **IP :** ${client.ip}
+                        **Created At :** ${client.date_created}
+                        **Updated At :** ${client.date_updated}`
+                    ).join('\n\n'))
                     .setColor('#00FF00')
                     .setTimestamp());
             }
@@ -83,7 +88,12 @@ const handleClientsCommand = async (interaction) => {
             if (offlineClients.length > 0) {
                 embeds.push(new EmbedBuilder()
                     .setTitle('Clients OFFLINE')
-                    .setDescription(offlineClients.map(client => `**${client.name || 'Unnamed client'}**\nIP: ${client.ip}`).join('\n\n'))
+                    .setDescription(offlineClients.map(client =>
+                        `**${client.name || 'Unnamed client'}**\n
+                        **IP :** ${client.ip}
+                        **Created At :** ${client.date_created}
+                        **Updated At :** ${client.date_updated}`
+                    ).join('\n\n'))
                     .setColor('#FF0000')
                     .setTimestamp());
             }
