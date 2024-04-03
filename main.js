@@ -61,7 +61,12 @@ const handleClientsCommand = async (interaction) => {
             const color = statusFilter === 'online' ? '#00FF00' : '#FF0000';
             const embed = new EmbedBuilder()
                 .setTitle(`Clients ${statusFilter.toUpperCase()}`)
-                .setDescription(clients.map(client => `**${client.name || 'Unnamed client'}**\nIP: ${client.ip}`).join('\n\n'))
+                .setDescription(clients.map(client =>
+                    `**${client.name || 'Unnamed client'}**\n
+                    **IP :** ${client.ip}
+                    **Created At :** ${client.date_created}
+                    **Updated At :** ${client.date_updated}`
+                ).join('\n\n'))
                 .setColor(color)
                 .setTimestamp();
 
