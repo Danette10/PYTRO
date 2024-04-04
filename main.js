@@ -59,8 +59,7 @@ const handleClientsCommand = async (interaction) => {
             const embed = new EmbedBuilder()
                 .setTitle(`Clients ${status}`)
                 .setDescription(clients.map(client =>
-                    `**${client.name || 'Client sans nom'}**\n
-                    **IP :** ${client.ip}
+                    `**${client.name || 'Client sans nom'} / ${client.ip}**\n
                     **Créé le :** ${client.date_created}
                     **Mis à jour le :** ${client.date_updated}`
                 ).join('\n\n'))
@@ -78,8 +77,7 @@ const handleClientsCommand = async (interaction) => {
                 embeds.push(new EmbedBuilder()
                     .setTitle('Clients EN LIGNE')
                     .setDescription(onlineClients.map(client =>
-                        `**${client.name || 'Client sans nom'}**\n
-                        **IP :** ${client.ip}
+                        `**${client.name || 'Client sans nom'} / ${client.ip}**\n
                         **Créé le :** ${client.date_created}
                         **Mis à jour le :** ${client.date_updated}`
                     ).join('\n\n'))
@@ -91,8 +89,7 @@ const handleClientsCommand = async (interaction) => {
                 embeds.push(new EmbedBuilder()
                     .setTitle('Clients HORS LIGNE')
                     .setDescription(offlineClients.map(client =>
-                        `**${client.name || 'Client sans nom'}**\n
-                        **IP :** ${client.ip}
+                        `**${client.name || 'Client sans nom'} / ${client.ip}**\n
                         **Créé le :** ${client.date_created}
                         **Mis à jour le :** ${client.date_updated}`
                     ).join('\n\n'))
