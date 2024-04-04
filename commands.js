@@ -14,7 +14,7 @@ export const commands = [
         options: [
             {
                 name: 'client_id',
-                description: 'L\'ID unique du client.',
+                description: 'Le numéro du client.',
                 type: 3,
                 required: true,
             },

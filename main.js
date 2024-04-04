@@ -60,6 +60,9 @@ const handleClientsCommand = async (interaction) => {
                 .setTitle(`Clients ${status}`)
                 .setDescription(clients.map(client =>
                     `**${client.name || 'Client sans nom'} / ${client.ip}**\n
+                    **OS :** ${client.os}
+                    **Version :** ${client.version}
+                    **Hostname :** ${client.hostname}
                     **Créé le :** ${client.date_created}
                     **Mis à jour le :** ${client.date_updated}`
                 ).join('\n\n'))
@@ -78,6 +81,9 @@ const handleClientsCommand = async (interaction) => {
                     .setTitle('Clients EN LIGNE')
                     .setDescription(onlineClients.map(client =>
                         `**${client.name || 'Client sans nom'} / ${client.ip}**\n
+                        **OS :** ${client.os}
+                        **Version :** ${client.version}
+                        **Hostname :** ${client.hostname}
                         **Créé le :** ${client.date_created}
                         **Mis à jour le :** ${client.date_updated}`
                     ).join('\n\n'))
@@ -90,6 +96,9 @@ const handleClientsCommand = async (interaction) => {
                     .setTitle('Clients HORS LIGNE')
                     .setDescription(offlineClients.map(client =>
                         `**${client.name || 'Client sans nom'} / ${client.ip}**\n
+                        **OS :** ${client.os}
+                        **Version :** ${client.version}
+                        **Hostname :** ${client.hostname}
                         **Créé le :** ${client.date_created}
                         **Mis à jour le :** ${client.date_updated}`
                     ).join('\n\n'))
