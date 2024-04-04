@@ -6,15 +6,15 @@ const { TOKEN, CLIENT_ID } = config;
 export const commands = [
     {
         name: 'help',
-        description: 'Replies with a help message.',
+        description: 'Affiche la liste des commandes disponibles.',
     },
     {
         name: 'screenshot',
-        description: 'Sends a command to take a screenshot.',
+        description: 'Envoie une commande pour prendre une capture d\'écran d\'un client spécifique.',
         options: [
             {
-                name: 'ip',
-                description: 'The IP address of the client.',
+                name: 'client_id',
+                description: 'L\'ID unique du client.',
                 type: 3,
                 required: true,
             },
@@ -22,20 +22,20 @@ export const commands = [
     },
     {
         name: 'clients',
-        description: 'Lists all clients.',
+        description: 'Liste des clients.',
         options: [
             {
                 name: 'status',
-                description: 'Filter by status.',
+                description: 'Filtrer les clients par statut.',
                 type: 3,
                 required: false,
                 choices: [
                     {
-                        name: 'Online',
+                        name: 'En ligne',
                         value: 'online',
                     },
                     {
-                        name: 'Offline',
+                        name: 'Hors ligne',
                         value: 'offline',
                     },
                 ],
@@ -44,22 +44,23 @@ export const commands = [
     },
     {
         name: 'stop',
-        description: 'Stop the bot.',
+        description: 'Arrêt du bot.',
     },
     {
         name: 'listallscreenshots',
-        description: 'List all screenshots.',
+        description: 'Liste de toutes les captures d\'écran.',
     },
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 try {
-    console.log('Started refreshing application (/) commands.');
+    console.log('Début de la mise à jour des commandes de l\'application (/).');
+    await rest.put(Routes.applicationCommands(CLIENT_ID), { body: [] });
 
     await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
 
-    console.log('Successfully reloaded application (/) commands.');
+    console.log('Commandes de l\'application (/) mises à jour avec succès.');
 } catch (error) {
     console.error(error);
 }

