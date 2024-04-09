@@ -1,5 +1,5 @@
 import {REST, Routes} from 'discord.js';
-import config from './config.json' assert {type: 'json'};
+import config from './static/config.json' assert {type: 'json'};
 
 const { TOKEN, CLIENT_ID } = config;
 

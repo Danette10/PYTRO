@@ -1,7 +1,7 @@
 # PYTRO
 
 <p align="center">
-  <img src="logo.png" alt="PYTRO logo"/>
+  <img src="static/logo.png" alt="PYTRO logo"/>
 </p>
 
 # ⚠️ DISCLAIMER ⚠️
