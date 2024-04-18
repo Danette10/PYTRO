@@ -1,7 +1,7 @@
 import {REST, Routes} from 'discord.js';
 import config from './static/config.json' assert {type: 'json'};
 
-const { TOKEN, CLIENT_ID } = config;
+const { TOKEN, CLIENT_ID, GUILD_ID } = config;
 
 export const commands = [
     {
@@ -78,9 +78,7 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 try {
     console.log('Début de la mise à jour des commandes de l\'application (/).');
-    await rest.put(Routes.applicationCommands(CLIENT_ID), { body: [] });
-
-    await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
 
     console.log('Commandes de l\'application (/) mises à jour avec succès.');
 } catch (error) {
