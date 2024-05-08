@@ -52,6 +52,7 @@ export async function fetchDataAndUpdateInteraction(type, interaction, clientId,
 }
 
 export async function handleFileResponse(interaction, endpoint, fileName, description, contentType) {
+    await interaction.deferReply({ ephemeral: true });
     try {
         const response = await executeRequestWithTokenRefresh(endpoint, { method: 'GET', responseType: 'arraybuffer' });
         let buffer;
@@ -67,7 +68,7 @@ export async function handleFileResponse(interaction, endpoint, fileName, descri
             embed = createEmbed("Capture d'écran", "Voici la capture d'écran :", [], '#2f6d2d', "attachment://" + fileName);
         }
 
-        await interaction.update({
+        await interaction.editReply({
             content: description,
             files: [attachment],
             embeds: embed ? [embed] : [],
@@ -75,7 +76,7 @@ export async function handleFileResponse(interaction, endpoint, fileName, descri
         });
     } catch (error) {
         console.error(`Erreur lors de la récupération du fichier ${contentType}`, error);
-        await interaction.update({
+        await interaction.editReply({
             content: `Erreur lors de la récupération du fichier ${contentType}.`,
             components: []
         });
