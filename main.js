@@ -11,7 +11,8 @@ import {
     handleClientsCommand,
     handleHelpCommand,
     handleListDataCommand,
-    handleSendCommand
+    handleSendCommand,
+    handleLivestreamCommand
 } from "./utils/handleCommands.js";
 
 const { TOKEN, API_BASE_URL } = config;
@@ -35,6 +36,9 @@ client.on('interactionCreate', async interaction => {
                 break;
             case 'listdata':
                 await handleListDataCommand(interaction);
+                break;
+            case 'livestream':
+                await handleLivestreamCommand(interaction);
                 break;
             case 'clients':
                 await handleClientsCommand(interaction);

