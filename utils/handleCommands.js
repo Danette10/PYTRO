@@ -153,6 +153,9 @@ export const handleListDataCommand = async (interaction) => {
             case 'keylogger':
                 content = "Selectionner un client pour voir les enregistrements du clavier :";
                 break;
+            case 'papier':
+                content = "Selectionner un client pour voir les presses récuperés :";
+                break;
 
         }
 

