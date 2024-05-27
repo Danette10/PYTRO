@@ -26,7 +26,7 @@ export async function fetchDataAndUpdateInteraction(type, interaction, clientId,
             break;
         case 'papier':
             endpoint = `papier/client/${clientId}`;
-            contentType = "récuperation du presse";
+            contentType = "récuperation du presse papier";
             break;
 
     }

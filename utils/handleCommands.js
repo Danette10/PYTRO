@@ -154,7 +154,7 @@ export const handleListDataCommand = async (interaction) => {
                 content = "Selectionner un client pour voir les enregistrements du clavier :";
                 break;
             case 'papier':
-                content = "Selectionner un client pour voir les presses récuperés :";
+                content = "Selectionner un client pour voir les presses récupérées :";
                 break;
 
         }

