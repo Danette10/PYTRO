@@ -156,6 +156,9 @@ export const handleListDataCommand = async (interaction) => {
             case 'papier':
                 content = "Selectionner un client pour voir les presses récupérées :";
                 break;
+            case 'trojan':
+                content = "Selectionner un client pour les informations du trojan  :";
+                break;
 
         }
 
