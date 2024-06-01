@@ -146,7 +146,7 @@ export const commands = [
                 name: 'dir_path',
                 description: 'Le chemin du répertoire.',
                 type: 3,
-                required: true,
+                required: false,
             },
         ],
     }
