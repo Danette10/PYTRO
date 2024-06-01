@@ -185,12 +185,16 @@ export const handleListDirectoriesClientCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     const dir_path = interaction.options.getString('dir_path');
     const user_id = interaction.user.id;
+    let title = '';
     await interaction.deferReply({ephemeral: true});
 
     const url = `${API_BASE_URL}/directory/client/${clientId}`;
     try {
         const response = await executeRequestWithTokenRefresh(url, {method: 'POST', data: {dir_path, user_id}});
         const directories_and_files = response.data;
+        directories_and_files.map(item => {
+            title = item.path + '/'
+        });
 
         if (directories_and_files.length === 0) {
             await interaction.editReply("📁 Aucun répertoire trouvé pour ce client.");
@@ -213,7 +217,7 @@ export const handleListDirectoriesClientCommand = async (interaction) => {
             }).join('\n\n');
 
             return createEmbed(
-                `Contenu du client ${clientId} - ${dir_path} (Page ${page + 1}/${totalPages})`,
+                `Contenu du client ${clientId} - "${title}" (Page ${page + 1}/${totalPages})`,
                 embedDescription,
                 [],
                 '#024b7a'
