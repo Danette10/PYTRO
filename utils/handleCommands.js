@@ -117,8 +117,8 @@ export const handleLivestreamCommand = async (interaction) => {
         if (error.response.data.message.includes("hors ligne")) {
             await interaction.editReply("Le client est hors ligne.");
         } else {
-            console.error("Erreur lors du démarrage de la diffusion en direct", error);
-            await interaction.editReply("Erreur lors du démarrage de la diffusion en direct.");
+            console.error("Erreur lors du démarrage de la diffusion en direct : ", error.response.data.message);
+            await interaction.editReply(error.response.data.message);
         }
     }
 }
