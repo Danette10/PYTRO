@@ -10,6 +10,7 @@ import {
     handleListDataCommand,
     handleListDirectoriesClientCommand,
     handleLivestreamCommand,
+    handleStopLivestreamCommand,
     handleSendCommand
 } from "./utils/handleCommands.js";
 
@@ -37,6 +38,9 @@ client.on('interactionCreate', async interaction => {
                 break;
             case 'live_stream':
                 await handleLivestreamCommand(interaction);
+                break;
+            case 'stop_stream':
+                await handleStopLivestreamCommand(interaction);
                 break;
             case 'clients':
                 await handleClientsCommand(interaction);

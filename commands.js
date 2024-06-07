@@ -81,6 +81,18 @@ export const commands = [
         ],
     },
     {
+        name: 'stop_stream',
+        description: 'Arrête la diffusion en direct de la webcam d\'un client.',
+        options: [
+            {
+                name: 'client_id',
+                description: 'Le numéro du client.',
+                type: 3,
+                required: true,
+            },
+        ],
+    },
+    {
         name: 'clients',
         description: 'Liste des clients.',
         options: [
