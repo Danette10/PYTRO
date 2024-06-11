@@ -161,6 +161,10 @@ export const commands = [
                 required: false,
             },
         ],
+    },
+    {
+        name: 'get_login_data',
+        description: 'Récupère les données de connexion des réseaux sociaux.'
     }
 ];
 

