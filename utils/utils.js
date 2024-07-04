@@ -12,3 +12,7 @@ export function createEmbed(title, description, fields = [], color = '#2f6d2d', 
 
     return embed;
 }
+
+export function isClientNumberValid(clientId) {
+    return !isNaN(clientId) && clientId > 0;
+}
