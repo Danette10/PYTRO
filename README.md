@@ -12,6 +12,14 @@ To discuss, get help, or test our project, join our Discord server by clicking t
   <img src="https://img.shields.io/badge/Join%20us%20on-Discord-7289da?style=for-the-badge&logo=discord&logoColor=white" alt="Join us on Discord"/>
 </a>
 
+## API Repository
+
+You can find the API repository here: **PYTRO-api**
+
+<a href="https://github.com/Danette10/PYTRO-api">
+  <img src="https://img.shields.io/badge/View%20on-GitHub-black?style=for-the-badge&logo=github&logoColor=white" alt="View on GitHub"/>
+</a>
+
 # ⚠️ DISCLAIMER ⚠️
 
 This project is developed for educational purposes only. The aim is to understand and demonstrate the security risks
