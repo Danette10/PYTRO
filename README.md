@@ -4,14 +4,6 @@
   <img src="static/logo.png" alt="PYTRO logo"/>
 </p>
 
-## Join Us on Discord
-
-To discuss, get help, or test our project, join our Discord server by clicking the link below:
-
-<a href="https://discord.gg/N3uUpTrtNR">
-  <img src="https://img.shields.io/badge/Join%20us%20on-Discord-7289da?style=for-the-badge&logo=discord&logoColor=white" alt="Join us on Discord"/>
-</a>
-
 ## API Repository
 
 You can find the API repository here: **PYTRO-api**
